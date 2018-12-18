@@ -25,4 +25,3 @@ message Table {
   map<string, FieldType> schema = 1;
   map<string, Column> columns = 2;
 }
-  
