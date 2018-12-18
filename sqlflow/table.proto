@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+// https://dev.mysql.com/doc/refman/8.0/en/data-types.html
+enum FieldType {
+  INT = 0; // MySQL 8.0 supports multiple types of integer values;
+  // we denote them all by INT.
+  FLOAT = 1; // MySQL 8.0 supports fixed-point and floating-point
+  // 4-byte and 8-byte real values; we denote them all
+  // by float.
+  DATE = 2; // MySQL supports DATE, DATETIME, and TIMESTAMP types;
+  // we denote them all by DATE.
+  STRING = 3; // MySQL supports CHAR, VARCHAR, BINARY, VARBINARY,
+  // BLOB, TEXT.  We denote them all by STRING.
+  // MySQL support other types, including JSON and spatial data
+  // types.  We will add them later.
+}
+
+message Table {
+  // Due to https://github.com/protocolbuffers/protobuf/issues/2388,
+  // we cannot write map<string, repeated string>; instead we need to
+  // define repeated string as Column.
+  message Column {
+    repeated string data = 1;
+  }
+  map<string, FieldType> schema = 1;
+  map<string, Column> columns = 2;
+}
+  
