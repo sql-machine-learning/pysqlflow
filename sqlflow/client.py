@@ -1,10 +1,4 @@
-from connection import Connection
-
-import sqlflow_pb2
-import sqlflow_pb2_grpc
-
-import grpc
-
+from dbapi import Connection
 
 def main():
     connection = Connection(host='localhost:50051')
