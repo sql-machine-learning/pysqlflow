@@ -1,18 +1,24 @@
+import grpc
+import sqlflow_pb2
+import sqlflow_pb2_grpc
+
 class Cursor(object):
     """DB-API Cursor to SQLFlow."""
 
-    def __init__(self):
+    def __init__(self, channel):
         self.description = None
         self.rowcount = None
-        raise NotImplementedError
+        self._stub = sqlflow_pb2_grpc.SQLFlowStub(channel)
 
     def close(self):
         """Close the curosr now."""
-        raise NotImplementedError
+        self.description = None
+        self.rowcount = None
+        self._stub = None
 
     def execute(self, operation):
         """Prepare and execute a database operation."""
-        raise NotImplementedError
+        self._response = self._stub.Run(sqlflow_pb2.RunRequest(sql=operation))
 
     def executemany(self, operation, seq_of_parameters):
         """Prepare a database operation and then execute it
