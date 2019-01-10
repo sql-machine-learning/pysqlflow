@@ -14,12 +14,12 @@ import sqlflow
 client = sqlflow.Client(server_url='localhost:50051')
 
 # Regular SQL
-response = client.query('select * from table')
+response = client.execute('select * from table')
 for dataframe in response:
     print(dataframe) # {'y': [4, 5, 6], 'x': [1, 2, 3]}
 
 # ML SQL, prints epoch = ..., loss = ...
-client.query('select ... train ...')
+client.execute('select ... train ...')
 ```
 
 ## Implementation
@@ -28,7 +28,7 @@ client.query('select ... train ...')
 
 `sqlflow.Client.__init__` establishes a grpc stub/channel based on `server_url`.
 
-`sqlflow.Client.query` takes a sql statement
+`sqlflow.Client.execute` takes a sql statement
 - if the statement is a regular SQL, it returns a generator which generates dataframes
 - if the statement is a extended SQL, it prints the log
 
@@ -42,10 +42,10 @@ class Client(object):
     def _decode_protobuf(self, proto):
         ...
 
-    def query(self, query):
+    def execute(self, operation):
         for res in self._stub.Run(sqlflow_pb2.RunRequest(sql=operation)):
             if res.is_message():
-                print(res)
+                log(res)
             else:
                 yield self._decode_protobuf(res)
 ```
