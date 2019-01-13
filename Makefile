@@ -1,4 +1,5 @@
 SQLFLOW_VERSION := develop
+SHELL := /bin/bash
 
 setup:
 	python3 -m venv venv
@@ -24,5 +25,16 @@ protoc:
 	&& python -m grpc_tools.protoc -Ibuild/grpc --python_out=. \
 		--grpc_python_out=. build/grpc/sqlflow/proto/sqlflow.proto \
 	&& rm -rf build/grpc
+
+release:
+	$(if $(shell git status -s), $(error "Please commit your changes or stash them before you release."))
+	git checkout develop
+	$(eval VERSION := $(subst .dev,,$(shell python sqlflow/__version__.py)))
+	$(info release $(VERSION)...)
+	sed -i '' "s/, 'dev'//" sqlflow/__version__.py
+	git commit -a -m "release $(VERSION)"
+	git checkout master
+	git merge develop
+	git push origin develop master
 
 .DEFAULT_GOAL := setup
