@@ -3,8 +3,8 @@
    Python Database API Specification v2.0 (DB-API):
    https://www.python.org/dev/peps/pep-0249/
 """
-from connection import Connection
-from cursor import Cursor
+from .connection import Connection
+from .cursor import Cursor
 
 apilevel = "2.0"
 
