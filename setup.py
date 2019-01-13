@@ -22,6 +22,8 @@ VERSION = None
 
 # What packages are required for this module to be executed?
 REQUIRED = [
+    'protobuf >=3.6, <4',
+    'grpcio >=1.17, <2',
 ]
 
 # What packages are optional?

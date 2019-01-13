@@ -1,8 +1,14 @@
-.idea/
+sqlflow/proto
 
 venv/
+build/
+dist/
+
 .eggs/
 *.egg-info/
+.pytest_cache
 __pycache__/
+
+.idea/
 
 *.swp
