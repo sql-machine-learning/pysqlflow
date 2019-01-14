@@ -12,3 +12,16 @@ This package is available on PyPI as `pysqlflow`:
 
 You can read the Sphinx generated docs at:
 [http://ktong.github.io/pysqlflow/](http://ktong.github.io/pysqlflow/)
+
+## Development
+
+## Prerequisite
+### Python 3
+`brew install python`
+
+### Setup Environment
+`make setup`
+
+### Generate GRPC client
+GRPC client code has been generated when you setup environment. 
+If you would like to regenerate it, please run `make protoc`.
