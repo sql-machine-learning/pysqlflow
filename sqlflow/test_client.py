@@ -40,7 +40,3 @@ class TestDecodeProtobuf(unittest.TestCase):
         data_frame = {"x": [.1, 2, False], "y": [4, 5.0, True]}
         res = generate_response(data_frame)
         self.assertEqual(client._decode_protobuf(res), data_frame)
-
-
-if __name__ == '__main__':
-    unittest.main()
