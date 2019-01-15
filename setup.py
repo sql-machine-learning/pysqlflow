@@ -24,6 +24,7 @@ VERSION = None
 REQUIRED = [
     'protobuf >=3.6, <4',
     'grpcio >=1.17, <2',
+    'pylint >=2.2.2, <3',
 ]
 
 # What packages are optional?

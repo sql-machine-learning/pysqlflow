@@ -1,3 +1,5 @@
+"""Client for interacting with the SQLFlow Server API."""
+
 import os
 import logging
 import grpc
@@ -8,7 +10,7 @@ import sqlflow.proto.sqlflow_pb2_grpc
 
 _LOGGER = logging.getLogger(__name__)
 
-class Client(object):
+class Client:
     def __init__(self, server_url=None):
         """A minimum client that issues queries to and fetch results/logs from sqlflowserver.
 
@@ -27,7 +29,7 @@ class Client(object):
                 _LOGGER.error("Please set system variable SQLFLOW_SERVER")
                 raise
 
-        channel = grpc.secure_channel(server_url)
+        channel = grpc.insecure_channel(server_url)
         self._stub = sqlflow_pb2_grpc.SQLFlowStub(channel)
 
     def execute(self, operation):
@@ -47,6 +49,7 @@ class Client(object):
             else:
                 yield _decode_protobuf(res)
 
+
 def _decode_any(any_message):
     if any_message.Is(wrapper.BoolValue.DESCRIPTOR):
         message = wrapper.BoolValue()
@@ -58,12 +61,12 @@ def _decode_any(any_message):
         message = wrapper.DoubleValue()
         any_message.Unpack(message)
     else:
-        #TODO(tonyyang-svail): support more data types
         raise Exception("Unsupported type {}".format(any_message))
     return message.value
 
+
 def _decode_protobuf(res):
-    dataframe = {}
+    data_frame = {}
     for key, value in res.columns.columns.items():
-        dataframe[key] = [_decode_any(a) for a in value.data]
-    return dataframe
+        data_frame[key] = [_decode_any(a) for a in value.data]
+    return data_frame
