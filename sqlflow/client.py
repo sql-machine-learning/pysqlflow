@@ -5,10 +5,11 @@ import logging
 import grpc
 import google.protobuf.wrappers_pb2 as wrapper
 
-import sqlflow.proto.sqlflow_pb2
-import sqlflow.proto.sqlflow_pb2_grpc
+import sqlflow.proto.sqlflow_pb2 as pb
+import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class Client:
     def __init__(self, server_url=None):
@@ -30,7 +31,7 @@ class Client:
                 raise
 
         channel = grpc.insecure_channel(server_url)
-        self._stub = sqlflow_pb2_grpc.SQLFlowStub(channel)
+        self._stub = pb_grpc.SQLFlowStub(channel)
 
     def execute(self, operation):
         """Run a SQLFlow operation
@@ -41,10 +42,10 @@ class Client:
         Returns:
             Generator: generates the response of the server
         """
-        for res in self._stub.Run(sqlflow_pb2.RunRequest(sql=operation)):
+        for res in self._stub.Run(pb.RunRequest(sql=operation)):
             if res.WhichOneof('response') == 'messages':
                 for message in res.messages.messages:
-                    _LOGGER.info(message)
+                    yield message
             else:
                 yield _decode_protobuf(res)
 
