@@ -15,12 +15,12 @@ class Client:
         """A minimum client that issues queries to and fetch results/logs from sqlflowserver.
 
         Args:
-            server_url(str):
-                sqlflowserver url
+            server_url(str):    sqlflowserver url. If None, read value from environment
+                                variable SQLFLOW_SERVER
 
         Raises:
             KeyError:
-                Raised if SQLFLOWSERVER is not specified as environment variable
+                Raised if SQLFLOW_SERVER is not specified as environment variable
         """
         if server_url is None:
             try:
@@ -33,36 +33,32 @@ class Client:
         self._stub = sqlflow_pb2_grpc.SQLFlowStub(channel)
 
     def execute(self, operation):
-        """Run a SQL query
+        """Run a SQLFlow operation
 
         Argument:
-            operation(str):
-                SQL query to be executed.
+            operation(str): SQL query to be executed.
 
         Returns:
             Generator: generates the response of the server
         """
         for res in self._stub.Run(sqlflow_pb2.RunRequest(sql=operation)):
             if res.WhichOneof('response') == 'messages':
-                for m in res.messages.messages:
-                    _LOGGER.info(m)
+                for message in res.messages.messages:
+                    _LOGGER.info(message)
             else:
                 yield _decode_protobuf(res)
 
 
+SUPPORTED_TYPES = (wrapper.BoolValue, wrapper.Int64Value, wrapper.DoubleValue)
+
+
 def _decode_any(any_message):
-    if any_message.Is(wrapper.BoolValue.DESCRIPTOR):
-        message = wrapper.BoolValue()
+    try:
+        message = next(t() for t in SUPPORTED_TYPES if any_message.Is(t.DESCRIPTOR))
         any_message.Unpack(message)
-    elif any_message.Is(wrapper.Int64Value.DESCRIPTOR):
-        message = wrapper.Int64Value()
-        any_message.Unpack(message)
-    elif any_message.Is(wrapper.DoubleValue.DESCRIPTOR):
-        message = wrapper.DoubleValue()
-        any_message.Unpack(message)
-    else:
-        raise Exception("Unsupported type {}".format(any_message))
-    return message.value
+        return message.value
+    except StopIteration:
+        raise TypeError("Unsupported type {}".format(any_message))
 
 
 def _decode_protobuf(res):
