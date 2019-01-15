@@ -27,8 +27,7 @@ class Client:
             try:
                 server_url = os.environ["SQLFLOW_SERVER"]
             except KeyError:
-                _LOGGER.error("Please set system variable SQLFLOW_SERVER")
-                raise
+                raise ValueError("Can't find environment variable SQLFLOW_SERVER")
 
         channel = grpc.insecure_channel(server_url)
         self._stub = pb_grpc.SQLFlowStub(channel)
