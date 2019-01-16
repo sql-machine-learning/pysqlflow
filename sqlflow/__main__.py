@@ -3,8 +3,8 @@ import argparse
 from sqlflow.client import Client
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--sql", nargs='+', type=str, help="sql", action="store", required=True)
-parser.add_argument("--url", type=str, help="server url", action="store", required=True)
+parser.add_argument('sql', nargs='+', type=str, help="sql", action="store")
+parser.add_argument("--url", type=str, help="server url", action="store", default=None)
 
 
 def main():

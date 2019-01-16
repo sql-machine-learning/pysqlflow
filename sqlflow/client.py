@@ -1,7 +1,6 @@
-"""Client for interacting with the SQLFlow Server API."""
-
 import os
 import logging
+
 import grpc
 import google.protobuf.wrappers_pb2 as wrapper
 
@@ -24,10 +23,9 @@ class Client:
                 Raised if SQLFLOW_SERVER is not specified as environment variable
         """
         if server_url is None:
-            try:
-                server_url = os.environ["SQLFLOW_SERVER"]
-            except KeyError:
+            if "SQLFLOW_SERVER" not in os.environ:
                 raise ValueError("Can't find environment variable SQLFLOW_SERVER")
+            server_url = os.environ["SQLFLOW_SERVER"]
 
         channel = grpc.insecure_channel(server_url)
         self._stub = pb_grpc.SQLFlowStub(channel)
@@ -49,20 +47,19 @@ class Client:
                 yield _decode_protobuf(res)
 
 
-SUPPORTED_TYPES = (wrapper.BoolValue, wrapper.Int64Value, wrapper.DoubleValue)
-
-
-def _decode_any(any_message):
-    try:
-        message = next(t() for t in SUPPORTED_TYPES if any_message.Is(t.DESCRIPTOR))
-        any_message.Unpack(message)
-        return message.value
-    except StopIteration:
-        raise TypeError("Unsupported type {}".format(any_message))
-
-
 def _decode_protobuf(res):
     data_frame = {}
     for key, value in res.columns.columns.items():
         data_frame[key] = [_decode_any(a) for a in value.data]
     return data_frame
+
+
+def _decode_any(any_message):
+    try:
+        message = next(getattr(wrapper, type_name)()
+                       for type_name, desc in wrapper.DESCRIPTOR.message_types_by_name.items()
+                       if any_message.Is(desc))
+        any_message.Unpack(message)
+        return message.value
+    except StopIteration:
+        raise TypeError("Unsupported type {}".format(any_message))
