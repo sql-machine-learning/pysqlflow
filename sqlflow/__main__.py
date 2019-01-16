@@ -15,7 +15,3 @@ def main():
         print("executing: {}".format(sql))
         for res in client.execute(sql):
             print(res)
-
-
-if __name__ == '__main__':
-    main()
