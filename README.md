@@ -1,4 +1,4 @@
-# pysqlflow [![Build Status](https://travis-ci.org/ktong/pysqlflow.svg?branch=master)](https://travis-ci.org/ktong/pysqlflow) [![PyPI Package](https://img.shields.io/pypi/v/pysqlflow.svg)](https://pypi.python.org/pypi/pysqlflow)
+# pysqlflow [![Build Status](https://travis-ci.org/ktong/pysqlflow.svg?branch=develop)](https://travis-ci.org/ktong/pysqlflow) [![PyPI Package](https://img.shields.io/pypi/v/pysqlflow.svg)](https://pypi.python.org/pypi/pysqlflow)
 
 [SQLFlow] (https://github.com/wangkuiyi/sqlflow) client library for Python.
 
@@ -21,6 +21,12 @@ You can read the Sphinx generated docs at:
 
 ### Setup Environment
 `make setup`
+
+### Test
+`make test`
+
+### Release
+`make release`
 
 ### Generate GRPC client
 GRPC client code has been generated when you setup environment. 
