@@ -1,4 +1,3 @@
-import unittest
 import google.protobuf.wrappers_pb2 as wrapper
 
 import sqlflow.client as client
@@ -34,9 +33,7 @@ def generate_response(data_frame):
     return res
 
 
-class TestDecodeProtobuf(unittest.TestCase):
-
-    def test_decode_protobuf(self):
-        data_frame = {"x": [.1, 2, False], "y": [4, 5.0, True]}
-        res = generate_response(data_frame)
-        self.assertEqual(client._decode_protobuf(res), data_frame)
+def test_decode_protobuf():
+    data_frame = {"x": [.1, 2, False], "y": [4, 5.0, True]}
+    res = generate_response(data_frame)
+    assert client._decode_protobuf(res) == data_frame

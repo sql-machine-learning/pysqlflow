@@ -1,0 +1,32 @@
+dist: xenial
+cache: pip
+branches:
+  only:
+  - master
+  - develop
+
+language: python
+python:
+- 3.5
+- 3.6
+- 3.7
+- 3.8-dev
+- pypy3.5
+
+install:
+- python setup.py -q install
+
+script:
+- make protoc
+- python setup.py -q test
+
+deploy:
+  provider: pypi
+  user: ktong
+  password:
+    secure: Xk+vE6kIRafPAGulkouTlSb3X0rJmDRcY69DiRNnrNyUw9uZHcfqaNd0znKukrslf1TY6GQH61UBa4iId+SdKLb+bW2iRYwItpD0UIg5dsUfTk7yckzeSPMc1+/7dsha44cZeuNVmQemN5CRCsn901UkSmT29sLYmxshcJjt3XCFZGC51SzuaxHmNUxhYEvNoSaOvqfA1uiwCI2sB2Y8szk1DSECbIggYjjd+vYWuTAZuFZ3hkGtIMXhH6/lieDrc+rkGRNqEmrgtDUcYzY4XvkB7ZFzYZPalXet41RJ3fJLSbeLss1COSO5LmkMGX9FunwCdlT7nHTTupcgPjOWwa2XPw1xOt38IwHZDuad+sIE5ATt/EbtREI+iTjE0wLUfO42uWgq70JuJJrs3YQsM/o4V6RkDjqugQepNAcjnadppce49PUCNJW9u+mSKc8wxkiLKdzc+aYQhQ82uxo+dP0Bkl2QZde9oVh+rAktsSQVrb7pk795bsoutEVch4mqQnHtfwrRtt5GmLMYodvDH8QhMfgyf+nFZ4xE8QYx7Z9CSJ6ivJZTJ3pHC0X6oFaISwYerF26kt7qX0cq16Q+xoWxi4RnSoqSY9DON/Z4HqMQSsRBlkPfZQAw5S9QrAWZj0xZB/Ur4VvsgMurL6f8FRxFZARDArNDe6otLgxbwxQ=
+  distributions: sdist bdist_wheel
+  skip_existing: true
+  on:
+    tags: true
+    repo: ktong/pysqlflow
