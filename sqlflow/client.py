@@ -27,6 +27,7 @@ class Client:
                 raise ValueError("Can't find environment variable SQLFLOW_SERVER")
             server_url = os.environ["SQLFLOW_SERVER"]
 
+        # FIXME(tonyyang-svail): change insecure_channel to secure_channel
         channel = grpc.insecure_channel(server_url)
         self._stub = pb_grpc.SQLFlowStub(channel)
 
@@ -44,22 +45,36 @@ class Client:
                 for message in res.messages.messages:
                     yield message
             else:
-                yield _decode_protobuf(res)
+                yield self._decode_protobuf(res)
 
+    @classmethod
+    def _decode_protobuf(cls, res):
+        """Decode Server Response
 
-def _decode_protobuf(res):
-    data_frame = {}
-    for key, value in res.columns.columns.items():
-        data_frame[key] = [_decode_any(a) for a in value.data]
-    return data_frame
+        Args:
+            res(sqlflow.proto.sqlflow_pb2.RunResponse.Columns)
 
+        Returns:
+            Dictionary from str to list
+        """
+        data_frame = {}
+        for key, value in res.columns.columns.items():
+            data_frame[key] = [cls._decode_any(a) for a in value.data]
+        return data_frame
 
-def _decode_any(any_message):
-    try:
-        message = next(getattr(wrapper, type_name)()
-                       for type_name, desc in wrapper.DESCRIPTOR.message_types_by_name.items()
-                       if any_message.Is(desc))
-        any_message.Unpack(message)
-        return message.value
-    except StopIteration:
-        raise TypeError("Unsupported type {}".format(any_message))
+    @classmethod
+    def _decode_any(cls, any_message):
+        """Decode a google.protobuf.any_pb2
+
+        Argument: any_message(google.protobuf.any_pb2): any message
+
+        Returns: any python object
+        """
+        try:
+            message = next(getattr(wrapper, type_name)()
+                           for type_name, desc in wrapper.DESCRIPTOR.message_types_by_name.items()
+                           if any_message.Is(desc))
+            any_message.Unpack(message)
+            return message.value
+        except StopIteration:
+            raise TypeError("Unsupported type {}".format(any_message))

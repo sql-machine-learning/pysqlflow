@@ -1,6 +1,6 @@
 import google.protobuf.wrappers_pb2 as wrapper
 
-import sqlflow.client as client
+from sqlflow.client import Client
 import sqlflow.proto.sqlflow_pb2 as pb
 
 
@@ -36,4 +36,4 @@ def generate_response(data_frame):
 def test_decode_protobuf():
     data_frame = {"x": [.1, 2, False], "y": [4, 5.0, True]}
     res = generate_response(data_frame)
-    assert client._decode_protobuf(res) == data_frame
+    assert Client._decode_protobuf(res) == data_frame
