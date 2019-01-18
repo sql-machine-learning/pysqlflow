@@ -66,9 +66,9 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     packages=find_packages(exclude=('tests',)),
-    # entry_points={
-    #     'console_scripts': ['mycli=mymodule:cli'],
-    # },
+    entry_points={
+        'console_scripts': ['sqlflow = sqlflow.__main__:main'],
+    },
     install_requires=REQUIRED,
     setup_requires=SETUP_REQUIRED,
     tests_require=TEST_REQUIRED,
