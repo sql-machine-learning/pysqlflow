@@ -20,20 +20,23 @@ def wrap_value(value):
     return message
         
 
-def generate_response(data_frame):
+def generate_response(table):
     res = pb.RunResponse()
 
-    col = pb.Columns()
-    for key, value in data_frame.items():
-        data = col.columns[key].data
-        for v in value:
-            data.add().Pack(wrap_value(v))
-    res.columns.CopyFrom(col)
+    table_message = pb.Table()
+    for name in table['column_names']:
+        table_message.column_names.append(name)
+    for row in table['rows']:
+        row_message = table_message.rows.add()
+        for data in row:
+            row_message.data.add().Pack(wrap_value(data))
+
+    res.table.CopyFrom(table_message)
 
     return res
 
 
 def test_decode_protobuf():
-    data_frame = {"x": [.1, 2, False], "y": [4, 5.0, True]}
-    res = generate_response(data_frame)
-    assert Client._decode_protobuf(res) == data_frame
+    table = {"column_names":['x','y'], "rows": [[1,2],[3,4]]}
+    res = generate_response(table)
+    assert Client._decode_protobuf(res) == table
