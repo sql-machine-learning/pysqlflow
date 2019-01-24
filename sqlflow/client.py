@@ -57,10 +57,9 @@ class Client:
         Returns:
             Dictionary from str to list
         """
-        data_frame = {}
-        for key, value in res.columns.columns.items():
-            data_frame[key] = [cls._decode_any(a) for a in value.data]
-        return data_frame
+        table = {"column_names": [name for name in res.table.column_names],
+                 "rows": [[cls._decode_any(a) for a in row.data] for row in res.table.rows]}
+        return table
 
     @classmethod
     def _decode_any(cls, any_message):
