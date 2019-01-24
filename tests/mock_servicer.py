@@ -13,7 +13,7 @@ class MockServicer(pb_grpc.SQLFlowServicer):
 
 
 def _server(port, event):
-    svr = grpc.server(futures.ThreadPoolExecutor(max_workers=16))
+    svr = grpc.server(futures.ThreadPoolExecutor(max_workers=2))
     pb_grpc.add_SQLFlowServicer_to_server(MockServicer(), svr)
     svr.add_insecure_port("[::]:%d" % port)
     svr.start()

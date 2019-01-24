@@ -20,6 +20,10 @@ class ClientServerTest(unittest.TestCase):
         time.sleep(1)
         cls.client = Client("localhost:%d" % port)
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.event.set()
+
     def wrap_value(self, value):
         if isinstance(value, bool):
             message = wrapper.BoolValue()
