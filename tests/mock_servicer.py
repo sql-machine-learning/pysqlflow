@@ -51,14 +51,15 @@ class MockServicer(pb_grpc.SQLFlowServicer):
         return res
 
     @staticmethod
-    def message_response(messageName):
+    def message_response(message_name):
         pb_msg = pb.Messages()
-        pb_msg.messages.append("mock message:%d, start" % messageName)
-        pb_msg.messages.append("mock message:%d, end" % messageName)
+        pb_msg.messages.append("mock message:%d, start" % message_name)
+        pb_msg.messages.append("mock message:%d, end" % message_name)
 
         res = pb.RunResponse()
         res.messages.CopyFrom(pb_msg)
         return res
+
 
 def _server(port, event):
     svr = grpc.server(futures.ThreadPoolExecutor(max_workers=2))

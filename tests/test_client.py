@@ -34,12 +34,12 @@ class ClientServerTest(unittest.TestCase):
 
     def test_execute_stream(self):
         table = {"column_names": ['x', 'y'], "rows": [[1, 2], [3, 4]]}
-        tableRsp = self.client.execute(operation="select * from galaxy")
-        for m in tableRsp:
-            assert Client._decode_protobuf(m) == table
+        table_response = self.client.execute(operation="select * from galaxy")
+        for message in table_response:
+            assert Client._decode_protobuf(message) == table
 
-        msgRsp = self.client.execute(operation="select * from galaxy train")
-        for m in msgRsp:
-            logger.debug(m)
-            assert 'mock message' in m
+        message_response = self.client.execute(operation="select * from galaxy train")
+        for message in message_response:
+            logger.debug(message)
+            assert 'mock message' in message
 
