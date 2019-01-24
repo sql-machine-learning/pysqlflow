@@ -19,6 +19,7 @@ VERSION = None
 REQUIRED = [
     'protobuf >=3.6, <4',
     'grpcio >=1.17, <2',
+    'ipython>=1.0',
 ]
 SETUP_REQUIRED = [
     'pytest-runner'
