@@ -14,3 +14,4 @@ __pycache__/
 *.swp
 *.vim
 *.pyc
+*.log
