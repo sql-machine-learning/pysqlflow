@@ -16,10 +16,15 @@ class MockServicer(pb_grpc.SQLFlowServicer):
         if "SELECT" in SQL:
             if "TRAIN" in SQL or "PREDICT" in SQL:
                 for i in range(3):
-                    yield MockServicer.message_response(i)
+                    yield MockServicer.message_response("extended sql", i)
+            else:
+                yield MockServicer.table_response(MockServicer.get_test_table())
         else:
-            table = {"column_names": ['x', 'y'], "rows": [[1, 2], [3, 4]]}
-            yield MockServicer.table_response(table)
+            yield MockServicer.message_response('bad request', 0)
+
+    @staticmethod
+    def get_test_table():
+        return {"column_names": ['x', 'y'], "rows": [[1, 2], [3, 4]]}
 
     @staticmethod
     def wrap_value(value):
@@ -51,10 +56,10 @@ class MockServicer(pb_grpc.SQLFlowServicer):
         return res
 
     @staticmethod
-    def message_response(message_name):
+    def message_response(message_name, message_id):
         pb_msg = pb.Messages()
-        pb_msg.messages.append("mock message:%d, start" % message_name)
-        pb_msg.messages.append("mock message:%d, end" % message_name)
+        pb_msg.messages.append("%s:%d, start" % (message_name, message_id))
+        pb_msg.messages.append("%s:%d, end" % (message_name, message_id))
 
         res = pb.RunResponse()
         res.messages.CopyFrom(pb_msg)

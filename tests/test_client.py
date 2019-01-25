@@ -28,18 +28,18 @@ class ClientServerTest(unittest.TestCase):
         cls.event.set()
 
     def test_decode_protobuf(self):
-        table = {"column_names": ['x', 'y'], "rows": [[1, 2], [3, 4]]}
+        table = MockServicer.get_test_table()
         res = MockServicer.table_response(table)
         assert Client._decode_protobuf(res) == table
 
     def test_execute_stream(self):
-        table = {"column_names": ['x', 'y'], "rows": [[1, 2], [3, 4]]}
-        table_response = self.client.execute(operation="select * from galaxy")
-        for message in table_response:
-            assert Client._decode_protobuf(message) == table
-
-        message_response = self.client.execute(operation="select * from galaxy train")
+        message_response = self.client.execute("select * from galaxy train ..")
         for message in message_response:
             logger.debug(message)
-            assert 'mock message' in message
+            assert 'extended sql' in message
 
+        expected_table = MockServicer.get_test_table()
+        table_response = self.client.execute("select * from galaxy")
+        for table in table_response:
+            res = MockServicer.table_response(table)
+            assert Client._decode_protobuf(res) == expected_table
