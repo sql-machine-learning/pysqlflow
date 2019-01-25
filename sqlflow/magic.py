@@ -15,7 +15,7 @@ class SqlFlowMagic(Magics):
     # - default displaylimit
     def __init__(self, shell):
         super(SqlFlowMagic, self).__init__(shell)
-        self.client = Client(server_url='localhost:50051')
+        self.client = Client()
 
     @cell_magic('sqlflow')
     def execute(self, line, cell):
@@ -35,10 +35,9 @@ class SqlFlowMagic(Magics):
             LABEL class
             INTO my_dnn_model;
         """
-
         for res in self.client.execute('\n'.join([line, cell])):
             if isinstance(res, dict):
-                self.print_table(res)
+                SqlFlowMagic.print_table(res)
             elif isinstance(res, str):
                 print(res)
             else:

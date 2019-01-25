@@ -27,6 +27,7 @@ class Client:
                 raise ValueError("Can't find environment variable SQLFLOW_SERVER")
             server_url = os.environ["SQLFLOW_SERVER"]
 
+        print("server_url: {}".format(server_url))
         # FIXME(tonyyang-svail): change insecure_channel to secure_channel
         channel = grpc.insecure_channel(server_url)
         self._stub = pb_grpc.SQLFlowStub(channel)

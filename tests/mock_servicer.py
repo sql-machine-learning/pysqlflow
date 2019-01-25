@@ -7,6 +7,10 @@ import sqlflow.proto.sqlflow_pb2 as pb
 import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
 
 
+_MOCK_MESSAGES = ["mock message: start", "mock message: end"]
+_MOCK_TABLE = {"column_names": ['x', 'y'], "rows": [[1, 2], [3, 4]]}
+
+
 class MockServicer(pb_grpc.SQLFlowServicer):
     """
     server implementation
@@ -15,11 +19,10 @@ class MockServicer(pb_grpc.SQLFlowServicer):
         SQL = request.sql.upper()
         if "SELECT" in SQL:
             if "TRAIN" in SQL or "PREDICT" in SQL:
-                for i in range(3):
-                    yield MockServicer.message_response(i)
+                for _ in range(3):
+                    yield MockServicer.message_response(_MOCK_MESSAGES)
         else:
-            table = {"column_names": ['x', 'y'], "rows": [[1, 2], [3, 4]]}
-            yield MockServicer.table_response(table)
+            yield MockServicer.table_response(_MOCK_TABLE)
 
     @staticmethod
     def wrap_value(value):
@@ -51,10 +54,10 @@ class MockServicer(pb_grpc.SQLFlowServicer):
         return res
 
     @staticmethod
-    def message_response(message_name):
+    def message_response(messages):
         pb_msg = pb.Messages()
-        pb_msg.messages.append("mock message:%d, start" % message_name)
-        pb_msg.messages.append("mock message:%d, end" % message_name)
+        for message in messages:
+            pb_msg.messages.append(message)
 
         res = pb.RunResponse()
         res.messages.CopyFrom(pb_msg)
