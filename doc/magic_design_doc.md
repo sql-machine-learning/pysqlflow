@@ -2,7 +2,7 @@
 
 ## Overview
 
-Magic command is the front end that of pysqlflow Client.
+Magic command wraps a pysqlflow client. It pretty prints the logs and tables.
 
 ## Example
 
@@ -50,4 +50,4 @@ Train Finished. Model saved at my_dnn_model
 
 ### Pretty print
 
-
+TBD
