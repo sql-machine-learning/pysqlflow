@@ -14,13 +14,13 @@ logger = logging.getLogger("grpc_client")
 class ClientServerTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # TODO: free port is better
         port = 8765
+        cls.port = 8765
         cls.event = threading.Event()
-        threading.Thread(target=_server, args=[port, cls.event]).start()
+        threading.Thread(target=_server, args=[cls.port, cls.event]).start()
         # wait for start
         time.sleep(1)
-        cls.client = Client("localhost:%d" % port)
+        cls.client = Client("localhost:%d" % cls.port)
 
     @classmethod
     def tearDownClass(cls):
@@ -43,3 +43,6 @@ class ClientServerTest(unittest.TestCase):
             logger.debug(message)
             assert 'mock message' in message
 
+        for _ in Client("localhost:%d" % self.port).execute('select * from galaxy'):
+            # The test should fail here
+            assert False
