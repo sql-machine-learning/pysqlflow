@@ -50,4 +50,28 @@ Train Finished. Model saved at my_dnn_model
 
 ### Pretty print
 
-TBD
+#### Table
+
+Some off-the-shelf library: https://stackoverflow.com/a/26937531/6794675
+
+```
+>>> from prettytable import PrettyTable
+>>> t = PrettyTable(['Name', 'Age'])
+>>> t.add_row(['Alice', 24])
+>>> t.add_row(['Bob', 19])
+>>> print t
++-------+-----+
+|  Name | Age |
++-------+-----+
+| Alice |  24 |
+|  Bob  |  19 |
++-------+-----+
+```
+
+#### Log
+
+Progress bar: https://stackoverflow.com/questions/3002085/python-to-print-out-status-bar-and-percentage
+
+```text
+[================          ]  60%
+```
