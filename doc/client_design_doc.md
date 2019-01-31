@@ -50,3 +50,8 @@ class Client(object):
                 yield self._decode_protobuf(res)
 ```
 
+## Credential
+
+The authorization between the client and the server should be independent
+with authorization between the server and the database. A client should never
+store any sensitive data such as DB username and password.

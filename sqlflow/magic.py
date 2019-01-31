@@ -1,4 +1,5 @@
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
+from sqlflow.client import Client
 
 
 @magics_class
@@ -8,27 +9,47 @@ class SqlFlowMagic(Magics):
     Provides the %%sqlflow magic
     """
 
-
     # TODO(tony): add config method such as
     # - default server url
     # - default credential
     # - default displaylimit
-    def __int__(self):
-        pass
+    def __init__(self, shell):
+        super(SqlFlowMagic, self).__init__(shell)
+        self.client = Client()
 
-    @line_magic('sqlflow')
-    def execute(self, line):
+    @cell_magic('sqlflow')
+    def execute(self, line, cell):
         """Runs SQL result against a sqlflow server, specified by server_url
 
         Example:
 
-            %%sqlflow localhost:50051
-            SELECT * FROM mytable
+            %%sqlflow  SELECT * FROM mytable
+
+            %%sqlflow SELECT *
+            FROM iris.iris limit 1
+            TRAIN DNNClassifier
+            WITH
+              n_classes = 3,
+              hidden_units = [10, 20]
+            COLUMN sepal_length, sepal_width, petal_length, petal_width
+            LABEL class
+            INTO my_dnn_model;
         """
-        # TODO(tony): add client logic
+        for res in self.client.execute('\n'.join([line, cell])):
+            if isinstance(res, dict):
+                SqlFlowMagic.print_table(res)
+            elif isinstance(res, str):
+                print(res)
+            else:
+                raise ValueError("can't print {}:{}".format(type(res), res))
 
-        return line
+    @staticmethod
+    def print_table(table):
+        print(table["column_names"])
+        for row in table["rows"]:
+            print(row)
 
 
-def load_ipython_extension(ip):
-    ip.register_magics(SqlFlowMagic)
+def load_ipython_extension(ipython):
+    magics = SqlFlowMagic(ipython)
+    ipython.register_magics(magics)
