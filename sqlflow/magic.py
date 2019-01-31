@@ -12,7 +12,7 @@ class SqlFlowMagic(Magics):
     # TODO(tony): add config method such as
     # - default server url
     # - default credential
-    # - default displaylimit
+    # - default display limit
     def __init__(self, shell):
         super(SqlFlowMagic, self).__init__(shell)
         self.client = Client()

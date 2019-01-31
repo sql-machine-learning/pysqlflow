@@ -13,6 +13,10 @@ install-requirements:
 test: ## Run tests
 	python3 setup.py test
 
+demo: ## Setup virtual environment for jupyter notebook demo
+	$(MAKE) setup
+	source venv/bin/activate && pip install jupyter
+
 clean: ## Clean up temporary folders
 	rm -rf build dist .eggs *.egg-info .pytest_cache sqlflow/proto
 

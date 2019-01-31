@@ -37,4 +37,3 @@ class SqlFlowMagicTest(unittest.TestCase):
         with io.capture_output() as captured:
             ip_session.run_cell_magic('sqlflow', '', 'SELECT TRAIN')
         assert "extended sql" in captured.stdout
-
