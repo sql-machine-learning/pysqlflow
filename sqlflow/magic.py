@@ -17,13 +17,34 @@ class SqlFlowMagic(Magics):
         super(SqlFlowMagic, self).__init__(shell)
         self.client = Client()
 
+    class Table:
+        def __init__(self, tables):
+            self._tables = tables
+
+        # This method will be called by ipython to display Job
+        def __repr__(self):
+            from prettytable import PrettyTable
+            t = PrettyTable(self._tables[0]["column_names"])
+            for table in self._tables:
+                for row in table["rows"]:
+                    t.add_row(row)
+            return t.__str__()
+
+        @staticmethod
+        def print_table(table):
+            from prettytable import PrettyTable
+            t = PrettyTable(table["column_names"])
+            for row in table["rows"]:
+                t.add_row(row)
+            return t
+
     @cell_magic('sqlflow')
     def execute(self, line, cell):
         """Runs SQL result against a sqlflow server, specified by server_url
 
         Example:
 
-            %%sqlflow  SELECT * FROM mytable
+            %%sqlflow SELECT * FROM mytable
 
             %%sqlflow SELECT *
             FROM iris.iris limit 1
@@ -35,19 +56,20 @@ class SqlFlowMagic(Magics):
             LABEL class
             INTO my_dnn_model;
         """
-        for res in self.client.execute('\n'.join([line, cell])):
+        command = '\n'.join([line, cell])
+
+        tables = []
+        # This method will be called by ipython to display Job
+        for res in self.client.execute(command):
             if isinstance(res, dict):
-                SqlFlowMagic.print_table(res)
+                tables.append(res)
             elif isinstance(res, str):
                 print(res)
             else:
                 raise ValueError("can't print {}:{}".format(type(res), res))
 
-    @staticmethod
-    def print_table(table):
-        print(table["column_names"])
-        for row in table["rows"]:
-            print(row)
+        if tables:
+            return SqlFlowMagic.Table(tables=tables)
 
 
 def load_ipython_extension(ipython):
