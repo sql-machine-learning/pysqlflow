@@ -28,4 +28,4 @@ deploy:
   skip_existing: true
   on:
     tags: true
-    repo: ktong/pysqlflow
+    repo: wangkuiyi/pysqlflow

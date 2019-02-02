@@ -1,4 +1,4 @@
-# pysqlflow [![Build Status](https://travis-ci.org/ktong/pysqlflow.svg?branch=develop)](https://travis-ci.org/ktong/pysqlflow) [![PyPI Package](https://img.shields.io/pypi/v/pysqlflow.svg)](https://pypi.python.org/pypi/pysqlflow)
+# pysqlflow [![Build Status](https://travis-ci.org/wangkuiyi/pysqlflow.svg?branch=develop)](https://travis-ci.org/wangkuiyi/pysqlflow) [![PyPI Package](https://img.shields.io/pypi/v/pysqlflow.svg)](https://pypi.python.org/pypi/pysqlflow)
 
 [SQLFlow] (https://github.com/wangkuiyi/sqlflow) client library for Python.
 
@@ -11,7 +11,7 @@ This package is available on PyPI as `pysqlflow`:
 ## Documentation
 
 You can read the Sphinx generated docs at:
-[http://ktong.github.io/pysqlflow/](http://ktong.github.io/pysqlflow/)
+[http://wangkuiyi.github.io/pysqlflow/](http://wangkuiyi.github.io/pysqlflow/)
 
 ## Development
 
