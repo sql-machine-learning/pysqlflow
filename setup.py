@@ -9,7 +9,7 @@ from setuptools import find_packages, setup
 # Package meta-data.
 NAME = 'sqlflow'
 DESCRIPTION = 'SQLFlow client library for Python.'
-URL = 'https://github.com/ktong/sqlflow'
+URL = 'https://github.com/wangkuiyi/sqlflow'
 EMAIL = 'kuisong.tong@gmail.com'
 AUTHOR = 'Kuisong Tong'
 REQUIRES_PYTHON = '>=3.5.0'
