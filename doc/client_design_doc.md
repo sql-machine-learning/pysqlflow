@@ -18,9 +18,9 @@ import sqlflow
 client = sqlflow.Client(server_url='localhost:50051')
 
 # Query SQL
-rowsets = client.query('SELECT ... FROM ...')
-for rowset in rowset:
-    print(rowset) # {"column_names": ["X", "Y"], "rows": [[1, 1], [2, 2]]}
+rowset = client.query('SELECT ... FROM ...')
+for row in rowset:
+    print(row) # [1, 1]
 
 # Execution SQL, prints
 # Query OK, ... row affected (... sec)
