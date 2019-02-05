@@ -18,9 +18,9 @@ import sqlflow
 client = sqlflow.Client(server_url='localhost:50051')
 
 # Query SQL
-rowset = client.query('SELECT ... FROM ...')
-for row in rowset:
-    print(row) # {[4, 5, 6]}
+rowsets = client.query('SELECT ... FROM ...')
+for rowset in rowset:
+    print(rowset) # {"column_names": ["X", "Y"], "rows": [[1, 1], [2, 2]]}
 
 # Execution SQL, prints
 # Query OK, ... row affected (... sec)
@@ -104,7 +104,7 @@ class Client:
         return RowSet(rowset_gen=rowset_gen)
 
     def execute(self, operation):
-        for res in self._stub.Query(sqlflow_pb2.Request(sql=operation)):
+        for res in self._stub.Execute(sqlflow_pb2.Request(sql=operation)):
             log(res)
 
 class RowSet:
