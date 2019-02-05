@@ -85,7 +85,7 @@ message Messages {
 
 `sqlflow.Client.__init__` establishes a grpc stub/channel based on `server_url`.
 
-`sqlflow.Client.query` takes a sql statement and returns a `RowSet` object.
+`sqlflow.Client.query` takes a sql statement and returns a `RowSet` object. `Rowset` will be merged if server returns multiple frames.
 
 `sqlflow.Client.execute` takes a sql statement prints the reponses.
 ```python
