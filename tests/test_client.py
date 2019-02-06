@@ -1,14 +1,9 @@
 import unittest
 import threading
 import time
-import logging
 
 from sqlflow.client import Client
 from tests.mock_servicer import _server, MockServicer
-
-
-logging.basicConfig(filename="test.log", level=logging.DEBUG)
-logger = logging.getLogger("grpc_client")
 
 
 class ClientServerTest(unittest.TestCase):
@@ -28,18 +23,24 @@ class ClientServerTest(unittest.TestCase):
         cls.event.set()
 
     def test_decode_protobuf(self):
-        table = MockServicer.get_test_table()
-        res = MockServicer.table_response(table)
-        assert Client._decode_protobuf(res) == table
+        rowset = MockServicer.get_test_rowset()
+        res = MockServicer.rowset_response(rowset)
+        assert Client._decode_protobuf(res) == rowset
 
-    def test_execute_stream(self):
-        message_response = self.client.execute("select * from galaxy train ..")
-        for message in message_response:
-            logger.debug(message)
-            assert 'extended sql' in message
+    def test_client_query(self):
+        response = self.client.query("select * from galaxy")
+        for rowset in response._rowsets:
+            assert MockServicer.get_test_rowset() == rowset
 
-        expected_table = MockServicer.get_test_table()
-        table_response = self.client.execute("select * from galaxy")
-        for table in table_response:
-            res = MockServicer.table_response(table)
-            assert Client._decode_protobuf(res) == expected_table
+    def test_client_execute(self):
+        from contextlib import redirect_stdout
+        import io
+
+        capture_string = io.StringIO()
+        with redirect_stdout(capture_string):
+            self.client.execute("select * from galaxy train ..")
+        contents = capture_string.getvalue()
+        capture_string.close()
+
+        assert "start" in contents
+        assert "end" in contents

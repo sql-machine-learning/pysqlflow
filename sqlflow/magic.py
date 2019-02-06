@@ -17,15 +17,28 @@ class SqlFlowMagic(Magics):
         super(SqlFlowMagic, self).__init__(shell)
         self.client = Client()
 
-    @cell_magic('sqlflow')
-    def execute(self, line, cell):
-        """Runs SQL result against a sqlflow server, specified by server_url
+    @cell_magic('sqlflow_query')
+    def query(self, line, cell):
+        """Query
 
         Example:
 
-            %%sqlflow  SELECT * FROM mytable
+            %%sqlflow_query
+            SELECT * FROM mytable
+        """
+        assert len(line) == 0
+        return self.client.query(cell)
 
-            %%sqlflow SELECT *
+    @cell_magic('sqlflow_execute')
+    def execute(self, line, cell):
+        """Execute
+
+        Example:
+            %%sqlflow_execute
+            DELETE ... FROM ... WHERE ...
+
+            %%sqlflow_execute
+            SELECT *
             FROM iris.iris limit 1
             TRAIN DNNClassifier
             WITH
@@ -35,19 +48,8 @@ class SqlFlowMagic(Magics):
             LABEL class
             INTO my_dnn_model;
         """
-        for res in self.client.execute('\n'.join([line, cell])):
-            if isinstance(res, dict):
-                SqlFlowMagic.print_table(res)
-            elif isinstance(res, str):
-                print(res)
-            else:
-                raise ValueError("can't print {}:{}".format(type(res), res))
-
-    @staticmethod
-    def print_table(table):
-        print(table["column_names"])
-        for row in table["rows"]:
-            print(row)
+        assert len(line) == 0
+        self.client.execute(cell)
 
 
 def load_ipython_extension(ipython):

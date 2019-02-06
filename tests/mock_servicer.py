@@ -11,19 +11,15 @@ class MockServicer(pb_grpc.SQLFlowServicer):
     """
     server implementation
     """
-    def Run(self, request, context):
-        SQL = request.sql.upper()
-        if "SELECT" in SQL:
-            if "TRAIN" in SQL or "PREDICT" in SQL:
-                for i in range(3):
-                    yield MockServicer.message_response("extended sql", i)
-            else:
-                yield MockServicer.table_response(MockServicer.get_test_table())
-        else:
-            yield MockServicer.message_response('bad request', 0)
+    def Execute(self, request, context):
+        for i in range(3):
+            yield MockServicer.message_response("extended sql", i)
+
+    def Query(self, request, context):
+        yield MockServicer.rowset_response(MockServicer.get_test_rowset())
 
     @staticmethod
-    def get_test_table():
+    def get_test_rowset():
         return {"column_names": ['x', 'y'], "rows": [[1, 2], [3, 4]]}
 
     @staticmethod
@@ -42,28 +38,25 @@ class MockServicer(pb_grpc.SQLFlowServicer):
         return message
 
     @staticmethod
-    def table_response(table):
-        res = pb.RunResponse()
-        table_message = pb.Table()
+    def rowset_response(rowset):
+        res = pb.RowSet()
 
-        for name in table['column_names']:
-            table_message.column_names.append(name)
-        for row in table['rows']:
-            row_message = table_message.rows.add()
+        for name in rowset['column_names']:
+            res.column_names.append(name)
+        for row in rowset['rows']:
+            row_message = res.rows.add()
             for data in row:
                 row_message.data.add().Pack(MockServicer.wrap_value(data))
-        res.table.CopyFrom(table_message)
+
         return res
 
     @staticmethod
     def message_response(message_name, message_id):
-        pb_msg = pb.Messages()
-        pb_msg.messages.append("%s:%d, start" % (message_name, message_id))
-        pb_msg.messages.append("%s:%d, end" % (message_name, message_id))
+        messages = pb.Messages()
+        messages.messages.append("%s:%d, start" % (message_name, message_id))
+        messages.messages.append("%s:%d, end" % (message_name, message_id))
 
-        res = pb.RunResponse()
-        res.messages.CopyFrom(pb_msg)
-        return res
+        return messages
 
 
 def _server(port, event):

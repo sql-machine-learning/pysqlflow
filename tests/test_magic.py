@@ -30,11 +30,12 @@ class SqlFlowMagicTest(unittest.TestCase):
         ip_session = get_ipython()
         ip_session.magic('load_ext sqlflow.magic')
 
-        with io.capture_output() as captured:
-            ip_session.run_cell_magic('sqlflow', '', 'select * from galaxy')
-        assert str(MockServicer.get_test_table()["column_names"]) in captured.stdout
+        response = ip_session.run_cell_magic('sqlflow_query', '',
+                                             'select * from ...')
+        for rowset in response._rowsets:
+            assert MockServicer.get_test_rowset() == rowset
 
         with io.capture_output() as captured:
-            ip_session.run_cell_magic('sqlflow', '', 'SELECT TRAIN')
+            ip_session.run_cell_magic('sqlflow_execute', '', 'SELECT TRAIN')
         assert "extended sql" in captured.stdout
 

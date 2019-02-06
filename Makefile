@@ -22,7 +22,7 @@ protoc: ## Generate python client from proto file
 	&& pip install grpcio-tools \
 	&& mkdir -p build/grpc/sqlflow/proto \
 	&& curl -o build/grpc/sqlflow/proto/sqlflow.proto \
-		https://raw.githubusercontent.com/wangkuiyi/sqlflowserver/$(SQLFLOW_VERSION)/sqlflow.proto \
+		https://gist.githubusercontent.com/tonyyang-svail/baad5d255ef36abded3134b47b952126/raw/f44660f233442a1c6cf6d448ea2a7c91476f85e9/sqlflow.proto \
 	&& python -m grpc_tools.protoc -Ibuild/grpc --python_out=. \
 		--grpc_python_out=. build/grpc/sqlflow/proto/sqlflow.proto \
 	&& rm -rf build/grpc

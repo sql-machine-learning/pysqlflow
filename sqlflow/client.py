@@ -7,7 +7,10 @@ import google.protobuf.wrappers_pb2 as wrapper
 import sqlflow.proto.sqlflow_pb2 as pb
 import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
 
-_LOGGER = logging.getLogger(__name__)
+
+class RowSet:
+    def __init__(self, rowsets):
+        self._rowsets = rowsets
 
 
 class Client:
@@ -31,21 +34,35 @@ class Client:
         channel = grpc.insecure_channel(server_url)
         self._stub = pb_grpc.SQLFlowStub(channel)
 
-    def execute(self, operation):
-        """Run a SQLFlow operation
+    def query(self, query):
+        """Query
 
         Argument:
-            operation(str): SQL query to be executed.
+            query(str): SELECT .. FROM ...
+
+        Returns:
+            rowset(RowSet)
+        """
+        rowsets = []
+        for res in self._stub.Query(pb.Request(sql=query)):
+            rowsets.append(self._decode_protobuf(res))
+
+        return RowSet(rowsets=rowsets)
+
+    def execute(self, operation):
+        """Execute a SQLFlow operation
+
+        Argument:
+            operation(str):
+                DELETE/INSERT
+                SELECT ... TRAIN/PREDICT ...
 
         Returns:
             Generator: generates the response of the server
         """
-        for res in self._stub.Run(pb.RunRequest(sql=operation)):
-            if res.WhichOneof('response') == 'messages':
-                for message in res.messages.messages:
-                    yield message
-            else:
-                yield self._decode_protobuf(res)
+        for messages in self._stub.Execute(pb.Request(sql=operation)):
+            for message in messages.messages:
+                print(message)
 
     @classmethod
     def _decode_protobuf(cls, res):
@@ -57,8 +74,8 @@ class Client:
         Returns:
             Dictionary from str to list
         """
-        table = {"column_names": [name for name in res.table.column_names],
-                 "rows": [[cls._decode_any(a) for a in row.data] for row in res.table.rows]}
+        table = {"column_names": [name for name in res.column_names],
+                 "rows": [[cls._decode_any(a) for a in row.data] for row in res.rows]}
         return table
 
     @classmethod
