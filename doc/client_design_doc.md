@@ -45,7 +45,7 @@ class Client:
         self._stub = sqlflow_pb2_grpc.SQLFlowStub(channel)
 
     def _decode_protobuf(self, proto):
-        # decode rowset
+        '''decode rowset'''
 
     def run(self, operation):
         def rowset_gen():
@@ -67,7 +67,13 @@ class RowSet:
             self._head, self._rows = None, None
 
     def __repr__(self):
-        # used for IPython: pretty prints self
+        '''used for IPython: pretty prints self'''
+
+    def rows(self):
+        return self._rows
+
+    def to_dataframe(self):
+        '''convert to dataframes'''
 ```
 
 ## Pagination
