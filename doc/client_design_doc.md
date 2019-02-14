@@ -2,13 +2,8 @@
 
 ## Overview
 
-SQLFlow Client connects [sqlflowserver](https://github.com/wangkuiyi/sqlflowserver). It has two methods
-
-1. `client.query` issues queries to and fetches rowset
-   1. `SELECT * FROM …`
-2. `client.execute` executes commands and prints logs
-   1. `INSERT`,`DELETE`,`VIEW` and `DROP`
-   2. `SELECT … TRAIN …` and `SELECT … PREDICT …`
+SQLFlow Client connects [sqlflowserver](https://github.com/wangkuiyi/sqlflowserver).
+It only one method `Run` which takes a SQL statement and returns a `RowSet` object.
 
 ## Example
 
@@ -18,76 +13,31 @@ import sqlflow
 client = sqlflow.Client(server_url='localhost:50051')
 
 # Query SQL
-rowset = client.query('SELECT ... FROM ...')
+rowset = client.run('SELECT ... FROM ...')
 for row in rowset:
     print(row) # [1, 1]
 
 # Execution SQL, prints
 # Query OK, ... row affected (... sec)
-client.execute('DELETE FROM ... WHERE ...')
+client.run('DELETE FROM ... WHERE ...')
 
 # ML SQL, prints
 # epoch = 0, loss = ...
 # epoch = 1, loss = ...
 # ...
-client.execute('SELECT ... TRAIN ...')
+client.run('SELECT ... TRAIN ...')
 ```
 
 ## Service Protocol
 
-`sqlflow.Client` uses grpc to contact the `sqlflowserver`. The service protocol is defined as follows
-
-```proto
-syntax = "proto3";
-
-import "google/protobuf/any.proto";
-
-package server;
-
-service SQLFlow {
-  rpc Query (Request) returns (stream RowSet);
-  rpc Execute (Request) returns (stream Messages);
-}
-
-// SQL statements to run
-// e.g.
-//      1. `SELECT ...`
-//      2. `USE ...`, `DELETE ...`
-//      3. `SELECT ... TRAIN/PREDICT ...`
-message Request {
-  string sql = 1;		// The SQL statement to be executed.
-}
-
-// SQL statements like `SELECT ...`, `DESCRIBE ...` returns a rowset.
-// The rowset might be big. In such cases, Query returns a stream
-// of RunResponse
-message RowSet {
-  repeated string column_names = 1;
-  repeated Row rows = 2;
-
-  // A row of data. Data can be any type
-  message Row {
-      repeated google.protobuf.Any data = 1;
-  }
-}
-
-// SQL statements like `USE database`, `DELETE` returns only a success
-// message.
-//
-// SQL statement like `SELECT ... TRAIN/PREDICT ...` returns a stream of
-// messages which indicates the training/predicting progress
-message Messages {
-  repeated string messages = 1;
-}
-```
+`sqlflow.Client` uses grpc to contact the `sqlflowserver`. The service protocol
+is defined [here](sqlfow/proto/sqlflow.proto)
 
 ## Implementaion
 
 `sqlflow.Client.__init__` establishes a grpc stub/channel based on `server_url`.
 
-`sqlflow.Client.query` takes a sql statement and returns a `RowSet` object. `Rowset` will be merged if server returns multiple frames.
-
-`sqlflow.Client.execute` takes a sql statement prints the reponses.
+`sqlflow.Client.run` takes a sql statement and returns a `RowSet` object.
 ```python
 class Client:
     def __init__(self, host):
@@ -97,22 +47,44 @@ class Client:
     def _decode_protobuf(self, proto):
         # decode rowset
 
-    def query(self, operation):
+    def run(self, operation):
         def rowset_gen():
-            for res in self._stub.Query(sqlflow_pb2.Request(sql=operation)):
-                yield self._decode_protobuf(res)
-        return RowSet(rowset_gen=rowset_gen)
+            for res in self._stub.Run(sqlflow_pb2.Request(sql=operation)):
+                if res.is_message():
+                    log(res)
+                else:
+                    yield self._decode_protobuf(res)
 
-    def execute(self, operation):
-        for res in self._stub.Execute(sqlflow_pb2.Request(sql=operation)):
-            log(res)
+        return RowSet(rowset_gen=rowset_gen)
 
 class RowSet:
     def __init__(self, rowset_gen):
-        self._rowset_gen = rowset_gen
+        res = [r for r in rowset_gen]
+        if res:
+            self._head = res[0]
+            self._rows = res[1:]
+        else:
+            self._head, self._rows = None, None
 
     def __repr__(self):
         # used for IPython: pretty prints self
+```
+
+## Pagination
+
+Currently sqlflow server doesn't support pagination, neither does the client.
+If we want to support it in the future, it can be implemented through passing
+pageTokens. For example, the following code snippet from
+[google-api-go-client](https://github.com/googleapis/google-api-go-client/blob/master/iterator/iterator.go#L68)
+
+```go
+// Function that fetches a page from the underlying service. It should pass
+// the pageSize and pageToken arguments to the service, fill the buffer
+// with the results from the call, and return the next-page token returned
+// by the service. The function must not remove any existing items from the
+// buffer. If the underlying RPC takes an int32 page size, pageSize should
+// be silently truncated.
+fetch func(pageSize int, pageToken string) (nextPageToken string, err error)
 ```
 
 ## Credential
