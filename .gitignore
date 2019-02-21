@@ -1,4 +1,4 @@
-sqlflow/proto
+sqlflow/proto/*.py
 
 venv/
 build/
