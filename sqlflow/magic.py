@@ -1,21 +1,15 @@
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
 from sqlflow.client import Client
 
-
 @magics_class
 class SqlFlowMagic(Magics):
     """Runs SQL statement
 
     Provides the %%sqlflow magic
     """
-
-    # TODO(tony): add config method such as
-    # - default server url
-    # - default credential
-    # - default displaylimit
-    def __init__(self, shell):
+    def __init__(self, shell, server_url):
         super(SqlFlowMagic, self).__init__(shell)
-        self.client = Client()
+        self.client = Client(server_url)
 
     @cell_magic('sqlflow')
     def execute(self, line, cell):
@@ -35,21 +29,9 @@ class SqlFlowMagic(Magics):
             LABEL class
             INTO my_dnn_model;
         """
-        for res in self.client.execute('\n'.join([line, cell])):
-            if isinstance(res, dict):
-                SqlFlowMagic.print_table(res)
-            elif isinstance(res, str):
-                print(res)
-            else:
-                raise ValueError("can't print {}:{}".format(type(res), res))
-
-    @staticmethod
-    def print_table(table):
-        print(table["column_names"])
-        for row in table["rows"]:
-            print(row)
-
+        return self.client.execute('\n'.join([line, cell]))
 
 def load_ipython_extension(ipython):
-    magics = SqlFlowMagic(ipython)
+    # FIXME(tony): remove hard code server url
+    magics = SqlFlowMagic(ipython, server_url="localhost:50051")
     ipython.register_magics(magics)
