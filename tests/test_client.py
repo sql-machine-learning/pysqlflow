@@ -28,7 +28,6 @@ class ClientServerTest(unittest.TestCase):
             self.client.execute("select * from galaxy train ..")
             log_mock.info.assert_called_with("extended sql")
 
-        self.client._stub.Run =
         expected_table = MockServicer.get_test_table()
         rows = self.client.execute("select * from galaxy")
         assert expected_table["column_names"] == rows.column_names()
