@@ -82,4 +82,5 @@ class Client:
             any_message.Unpack(message)
             return message.value
         except StopIteration:
+            # TODO(tony): support Time and Null
             raise TypeError("Unsupported type {}".format(any_message))
