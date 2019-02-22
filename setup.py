@@ -27,7 +27,6 @@ SETUP_REQUIRED = [
 ]
 TEST_REQUIRED = [
     'pytest',
-    'mock',
 ]
 
 # What packages are optional?

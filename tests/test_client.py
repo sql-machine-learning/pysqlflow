@@ -1,7 +1,7 @@
 import unittest
 import threading
 import time
-import mock
+from unittest import mock
 
 from sqlflow.client import Client
 from tests.mock_servicer import _server, MockServicer
