@@ -9,7 +9,7 @@ class SqlFlowMagic(Magics):
     """
     def __init__(self, shell, server_url):
         super(SqlFlowMagic, self).__init__(shell)
-        self.client = Client(server_url)
+        self.client = Client()
 
     @cell_magic('sqlflow')
     def execute(self, line, cell):
@@ -32,6 +32,5 @@ class SqlFlowMagic(Magics):
         return self.client.execute('\n'.join([line, cell]))
 
 def load_ipython_extension(ipython):
-    # FIXME(tony): remove hard code server url
-    magics = SqlFlowMagic(ipython, server_url="localhost:50051")
+    magics = SqlFlowMagic(ipython)
     ipython.register_magics(magics)
