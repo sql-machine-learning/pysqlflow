@@ -1,14 +1,18 @@
 import sys
+import os
 import logging
-
 import grpc
-import google.protobuf.wrappers_pb2 as wrapper
 
+import google.protobuf.wrappers_pb2 as wrapper
 import sqlflow.proto.sqlflow_pb2 as pb
 import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
 
 
-_LOGGER = logging.getLogger()
+_LOGGER = logging.getLogger(__name__)
+_OUT_HANDLER = logging.StreamHandler(sys.stdout)
+_OUT_HANDLER.setLevel(logging.INFO)
+_LOGGER.addHandler(_OUT_HANDLER)
+_LOGGER.setLevel(logging.INFO)
 
 
 class Rows:
@@ -66,16 +70,18 @@ class Client:
         """Run a SQLFlow operation
         """
         stream_response = self._stub.Run(pb.Request(sql=operation))
-        for res in stream_response:
-            if res.WhichOneof('response') == 'message':
+        peak = next(stream_response)
+        if peak.WhichOneof('response') == 'message':
+            _LOGGER.info(peak.message.message)
+            for res in stream_response:
                 _LOGGER.info(res.message.message)
-            else:
-                assert res.WhichOneof('response') == 'head'
-                column_names = [column_name for column_name in res.head.column_names]
-                def rows_gen():
-                    for res in stream_response:
-                        yield [self._decode_any(a) for a in res.row.data]
-                return Rows(column_names, rows_gen)
+        else:
+            column_names = [column_name for column_name in peak.head.column_names]
+
+            def rows_gen():
+                for res in stream_response:
+                    yield [self._decode_any(a) for a in res.row.data]
+            return Rows(column_names, rows_gen)
 
     @classmethod
     def _decode_any(cls, any_message):

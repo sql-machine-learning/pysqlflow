@@ -7,7 +7,7 @@ class SqlFlowMagic(Magics):
 
     Provides the %%sqlflow magic
     """
-    def __init__(self, shell, server_url):
+    def __init__(self, shell):
         super(SqlFlowMagic, self).__init__(shell)
         self.client = Client()
 
