@@ -4,6 +4,8 @@ import logging
 import grpc
 
 import google.protobuf.wrappers_pb2 as wrapper
+from google.protobuf.timestamp_pb2 import Timestamp
+
 import sqlflow.proto.sqlflow_pb2 as pb
 import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
 
@@ -94,5 +96,10 @@ class Client:
             any_message.Unpack(message)
             return message.value
         except StopIteration:
-            # TODO(tony): support Time and Null
+            if any_message.Is(pb.Row.Null.DESCRIPTOR):
+                return None
+            if any_message.Is(Timestamp.DESCRIPTOR):
+                timestamp_message = Timestamp()
+                any_message.Unpack(timestamp_message)
+                return timestamp_message.ToDatetime()
             raise TypeError("Unsupported type {}".format(any_message))
