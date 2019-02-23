@@ -6,6 +6,10 @@ from unittest import mock
 from sqlflow.client import Client
 from tests.mock_servicer import _server, MockServicer
 
+from google.protobuf.timestamp_pb2 import Timestamp
+from google.protobuf.any_pb2 import Any
+import sqlflow.proto.sqlflow_pb2 as pb
+
 
 class ClientServerTest(unittest.TestCase):
     @classmethod
@@ -32,3 +36,16 @@ class ClientServerTest(unittest.TestCase):
         rows = self.client.execute("select * from galaxy")
         assert expected_table["column_names"] == rows.column_names()
         assert expected_table["rows"] == rows.rows()
+
+    def test_decode_time(self):
+        any_message = Any()
+        timestamp_message = Timestamp()
+        timestamp_message.GetCurrentTime()
+        any_message.Pack(timestamp_message)
+        assert timestamp_message.ToDatetime() == Client._decode_any(any_message)
+
+    def test_decode_null(self):
+        any_message = Any()
+        null_message = pb.Row.Null()
+        any_message.Pack(null_message)
+        assert Client._decode_any(any_message) is None
