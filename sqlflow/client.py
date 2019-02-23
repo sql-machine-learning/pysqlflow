@@ -72,13 +72,13 @@ class Client:
         """Run a SQLFlow operation
         """
         stream_response = self._stub.Run(pb.Request(sql=operation))
-        peak = next(stream_response)
-        if peak.WhichOneof('response') == 'message':
-            _LOGGER.info(peak.message.message)
+        first = next(stream_response)
+        if first.WhichOneof('response') == 'message':
+            _LOGGER.info(first.message.message)
             for res in stream_response:
                 _LOGGER.info(res.message.message)
         else:
-            column_names = [column_name for column_name in peak.head.column_names]
+            column_names = [column_name for column_name in first.head.column_names]
 
             def rows_gen():
                 for res in stream_response:
