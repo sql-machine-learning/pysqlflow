@@ -4,17 +4,21 @@ branches:
   only:
   - master
   - develop
+
 language: python
 python:
 - 3.5
 - 3.6
 - 3.7
 - 3.8-dev
+
 install:
 - python setup.py -q install
+
 script:
 - make protoc
 - python setup.py -q test
+
 deploy:
   provider: pypi
   user: tonyyang
