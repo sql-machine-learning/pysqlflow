@@ -20,12 +20,13 @@ REQUIRED = [
     'protobuf >=3.6, <4',
     'grpcio >=1.17, <2',
     'ipython>=1.0',
+    'prettytable',
 ]
 SETUP_REQUIRED = [
     'pytest-runner'
 ]
 TEST_REQUIRED = [
-    'pytest'
+    'pytest',
 ]
 
 # What packages are optional?

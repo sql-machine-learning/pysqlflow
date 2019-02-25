@@ -16,9 +16,10 @@ class MockServicer(pb_grpc.SQLFlowServicer):
         if "SELECT" in SQL:
             if "TRAIN" in SQL or "PREDICT" in SQL:
                 for i in range(3):
-                    yield MockServicer.message_response("extended sql", i)
+                    yield MockServicer.message_response("extended sql")
             else:
-                yield MockServicer.table_response(MockServicer.get_test_table())
+                for res in MockServicer.table_response(MockServicer.get_test_table()):
+                    yield res
         else:
             yield MockServicer.message_response('bad request', 0)
 
@@ -43,26 +44,28 @@ class MockServicer(pb_grpc.SQLFlowServicer):
 
     @staticmethod
     def table_response(table):
-        res = pb.RunResponse()
-        table_message = pb.Table()
-
+        res = pb.Response()
+        head = pb.Head()
         for name in table['column_names']:
-            table_message.column_names.append(name)
+            head.column_names.append(name)
+        res.head.CopyFrom(head)
+        yield res
+
         for row in table['rows']:
-            row_message = table_message.rows.add()
+            res = pb.Response()
+            row_message = pb.Row()
             for data in row:
                 row_message.data.add().Pack(MockServicer.wrap_value(data))
-        res.table.CopyFrom(table_message)
-        return res
+            res.row.CopyFrom(row_message)
+            yield res
 
     @staticmethod
-    def message_response(message_name, message_id):
-        pb_msg = pb.Messages()
-        pb_msg.messages.append("%s:%d, start" % (message_name, message_id))
-        pb_msg.messages.append("%s:%d, end" % (message_name, message_id))
+    def message_response(message):
+        pb_msg = pb.Message()
+        pb_msg.message = message
 
-        res = pb.RunResponse()
-        res.messages.CopyFrom(pb_msg)
+        res = pb.Response()
+        res.message.CopyFrom(pb_msg)
         return res
 
 

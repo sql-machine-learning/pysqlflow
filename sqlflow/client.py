@@ -1,13 +1,48 @@
 import os
 import logging
-
 import grpc
+
 import google.protobuf.wrappers_pb2 as wrapper
+from google.protobuf.timestamp_pb2 import Timestamp
 
 import sqlflow.proto.sqlflow_pb2 as pb
 import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
 
+
 _LOGGER = logging.getLogger(__name__)
+
+
+class Rows:
+    def __init__(self, column_names, rows_gen):
+        self._column_names = column_names
+        self._rows_gen = rows_gen
+        self._rows = None
+
+    def column_names(self):
+        return self._column_names
+
+    def rows(self):
+        if self._rows is None:
+            self._rows = []
+            for row in self._rows_gen():
+                self._rows.append(row)
+                yield row
+        else:
+            for row in self._rows:
+                yield row
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        from prettytable import PrettyTable
+        table = PrettyTable(self._column_names)
+        for row in self.rows():
+            table.add_row(row)
+        return table.__str__()
+
+    def to_dataframe(self):
+        raise NotImplementedError
 
 
 class Client:
@@ -33,41 +68,24 @@ class Client:
 
     def execute(self, operation):
         """Run a SQLFlow operation
-
-        Argument:
-            operation(str): SQL query to be executed.
-
-        Returns:
-            Generator: generates the response of the server
         """
-        for res in self._stub.Run(pb.RunRequest(sql=operation)):
-            if res.WhichOneof('response') == 'messages':
-                for message in res.messages.messages:
-                    yield message
-            else:
-                yield self._decode_protobuf(res)
+        stream_response = self._stub.Run(pb.Request(sql=operation))
+        first = next(stream_response)
+        if first.WhichOneof('response') == 'message':
+            _LOGGER.info(first.message.message)
+            for res in stream_response:
+                _LOGGER.info(res.message.message)
+        else:
+            column_names = [column_name for column_name in first.head.column_names]
 
-    @classmethod
-    def _decode_protobuf(cls, res):
-        """Decode Server Response
-
-        Args:
-            res(sqlflow.proto.sqlflow_pb2.RunResponse.Columns)
-
-        Returns:
-            Dictionary from str to list
-        """
-        table = {"column_names": [name for name in res.table.column_names],
-                 "rows": [[cls._decode_any(a) for a in row.data] for row in res.table.rows]}
-        return table
+            def rows_gen():
+                for res in stream_response:
+                    yield [self._decode_any(a) for a in res.row.data]
+            return Rows(column_names, rows_gen)
 
     @classmethod
     def _decode_any(cls, any_message):
         """Decode a google.protobuf.any_pb2
-
-        Argument: any_message(google.protobuf.any_pb2): any message
-
-        Returns: any python object
         """
         try:
             message = next(getattr(wrapper, type_name)()
@@ -76,4 +94,10 @@ class Client:
             any_message.Unpack(message)
             return message.value
         except StopIteration:
+            if any_message.Is(pb.Row.Null.DESCRIPTOR):
+                return None
+            if any_message.Is(Timestamp.DESCRIPTOR):
+                timestamp_message = Timestamp()
+                any_message.Unpack(timestamp_message)
+                return timestamp_message.ToDatetime()
             raise TypeError("Unsupported type {}".format(any_message))
