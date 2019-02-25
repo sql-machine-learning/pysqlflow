@@ -35,7 +35,7 @@ class ClientServerTest(unittest.TestCase):
         expected_table = MockServicer.get_test_table()
         rows = self.client.execute("select * from galaxy")
         assert expected_table["column_names"] == rows.column_names()
-        assert expected_table["rows"] == rows.rows()
+        assert expected_table["rows"] == [r for r in rows.rows()]
 
     def test_decode_time(self):
         any_message = Any()

@@ -28,18 +28,21 @@ class Rows:
 
     def rows(self):
         if self._rows is None:
-            self._rows = [r for r in self._rows_gen()]
-        return self._rows
+            self._rows = []
+            for row in self._rows_gen():
+                self._rows.append(row)
+                yield row
+        else:
+            for row in self._rows:
+                yield row
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        self.rows()
-
         from prettytable import PrettyTable
         table = PrettyTable(self._column_names)
-        for row in self._rows:
+        for row in self.rows():
             table.add_row(row)
         return table.__str__()
 
