@@ -1,4 +1,3 @@
-import sys
 import os
 import logging
 import grpc
@@ -11,10 +10,6 @@ import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
 
 
 _LOGGER = logging.getLogger(__name__)
-_OUT_HANDLER = logging.StreamHandler(sys.stdout)
-_OUT_HANDLER.setLevel(logging.INFO)
-_LOGGER.addHandler(_OUT_HANDLER)
-_LOGGER.setLevel(logging.INFO)
 
 
 class Rows:

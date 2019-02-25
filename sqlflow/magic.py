@@ -1,5 +1,8 @@
+import sys
+import logging
+
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
-from sqlflow.client import Client
+from sqlflow.client import Client, _LOGGER
 
 @magics_class
 class SqlFlowMagic(Magics):
@@ -32,5 +35,10 @@ class SqlFlowMagic(Magics):
         return self.client.execute('\n'.join([line, cell]))
 
 def load_ipython_extension(ipython):
+    out_handler = logging.StreamHandler(sys.stdout)
+    out_handler.setLevel(logging.INFO)
+    _LOGGER.addHandler(out_handler)
+    _LOGGER.setLevel(logging.INFO)
+
     magics = SqlFlowMagic(ipython)
     ipython.register_magics(magics)
