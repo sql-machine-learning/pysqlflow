@@ -15,3 +15,5 @@ __pycache__/
 *.vim
 *.pyc
 *.log
+
+.DS_Store
