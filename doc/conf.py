@@ -23,6 +23,7 @@ autoclass_content = 'both'
 
 # -- Project information -----------------------------------------------------
 
+# TODO(tony): read project, author, version, release from setup.py
 project = 'pysqlflow'
 copyright = '2019, Yang Yang'
 author = 'Yang Yang'
