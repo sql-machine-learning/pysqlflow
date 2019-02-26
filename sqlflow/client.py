@@ -14,14 +14,33 @@ _LOGGER = logging.getLogger(__name__)
 
 class Rows:
     def __init__(self, column_names, rows_gen):
+        """Query result of sqlflow.client.Client.execute
+
+        :param column_names: column names
+        :type column_names: list[str].
+        :param rows_gen: rows generator
+        :type rows_gen: generator
+        """
         self._column_names = column_names
         self._rows_gen = rows_gen
         self._rows = None
 
     def column_names(self):
+        """Column names
+
+        :return: list[str]
+        """
         return self._column_names
 
     def rows(self):
+        """Rows
+
+        Example:
+
+        >>> [r for r in rows.rows()]
+
+        :return: list generator
+        """
         if self._rows is None:
             self._rows = []
             for row in self._rows_gen():
@@ -42,6 +61,10 @@ class Rows:
         return table.__str__()
 
     def to_dataframe(self):
+        """Convert Rows to pandas.Dataframe
+
+        :return: pandas.Dataframe
+        """
         raise NotImplementedError
 
 
@@ -49,13 +72,15 @@ class Client:
     def __init__(self, server_url=None):
         """A minimum client that issues queries to and fetch results/logs from sqlflowserver.
 
-        Args:
-            server_url(str):    sqlflowserver url. If None, read value from environment
-                                variable SQLFLOW_SERVER
+        :param server_url: sqlflowserver url. If None, read value from
+                           environment variable SQLFLOW_SERVER.
+        :type server_url: str.
+        :raises: ValueError
 
-        Raises:
-            KeyError:
-                Raised if SQLFLOW_SERVER is not specified as environment variable
+        Example:
+
+        >>> client = sqlflow.Client(server_url="localhost:50051")
+
         """
         if server_url is None:
             if "SQLFLOW_SERVER" not in os.environ:
@@ -67,7 +92,17 @@ class Client:
         self._stub = pb_grpc.SQLFlowStub(channel)
 
     def execute(self, operation):
-        """Run a SQLFlow operation
+        """Run a SQL statement
+
+        :param operation: SQL statement to be executed.
+        :type operation: str.
+
+        :returns: sqlflow.client.Rows
+
+        Example:
+
+        >>> client.execute("select * from iris limit 1")
+
         """
         stream_response = self._stub.Run(pb.Request(sql=operation))
         first = next(stream_response)
