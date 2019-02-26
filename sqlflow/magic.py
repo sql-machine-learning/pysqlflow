@@ -6,9 +6,8 @@ from sqlflow.client import Client, _LOGGER
 
 @magics_class
 class SqlFlowMagic(Magics):
-    """Runs SQL statement
-
-    Provides the %%sqlflow magic
+    """
+    Provides the `%%sqlflow` magic
     """
     def __init__(self, shell):
         super(SqlFlowMagic, self).__init__(shell)
@@ -16,21 +15,28 @@ class SqlFlowMagic(Magics):
 
     @cell_magic('sqlflow')
     def execute(self, line, cell):
-        """Runs SQL result against a sqlflow server, specified by server_url
+        """Runs SQL statement
+
+        :param line: The line magic
+        :type line: str.
+        :param cell: The cell magic
+        :type cell: str.
 
         Example:
 
-            %%sqlflow  SELECT * FROM mytable
+        >>> %%sqlflow SELECT *
+        ... FROM mytable
 
-            %%sqlflow SELECT *
-            FROM iris.iris limit 1
-            TRAIN DNNClassifier
-            WITH
-              n_classes = 3,
-              hidden_units = [10, 20]
-            COLUMN sepal_length, sepal_width, petal_length, petal_width
-            LABEL class
-            INTO my_dnn_model;
+        >>> %%sqlflow SELECT *
+        ... FROM iris.iris limit 1
+        ... TRAIN DNNClassifier
+        ... WITH
+        ...   n_classes = 3,
+        ...   hidden_units = [10, 10]
+        ... COLUMN sepal_length, sepal_width, petal_length, petal_width
+        ... LABEL class
+        ... INTO my_dnn_model;
+
         """
         return self.client.execute('\n'.join([line, cell]))
 
