@@ -22,7 +22,8 @@ protoc: ## Generate python client from proto file
 	&& pip install grpcio-tools \
 	&& mkdir -p build/grpc/sqlflow/proto \
 	&& python -m grpc_tools.protoc -Iproto --python_out=. \
-		--grpc_python_out=. proto/sqlflow/proto/sqlflow.proto
+		--grpc_python_out=. proto/sqlflow/proto/sqlflow.proto \
+	&& touch sqlflow/proto/__init__.py
 
 release: ## Release new version
 	$(if $(shell git status -s), $(error "Please commit your changes or stash them before you release."))
