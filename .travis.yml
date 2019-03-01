@@ -22,10 +22,6 @@ script:
 - make protoc
 - python setup.py -q test
 
-before_deploy:
-- make protoc
-- find sqlflow # print all files
-
 deploy:
   provider: pypi
   user: tonyyang
