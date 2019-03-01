@@ -28,7 +28,7 @@ deploy:
   password:
     # secure token: `echo -n "password" | travis encrypt --add deploy.password -r wangkuiyi/pysqlflow`
     secure: sDAa83Ty6gY5VEcGX8vZcy6poyHod2TUnZ9XQ/Bc8n9o5Zm1b7om6tvo8rJ5AyokDcWmXCTj8wqP4wcajnvzRee25dOfjZync23h+lrO23ovH7omSwmbjzaDIQa8OjlUz9AckI7GcW8h1Q9ARmr4vSBrGmk6qj0OADVNcsRRa7899ICArqI3PAfLj8zgu6Z2fvAcyzUi/Fmal4kOn/gjiB6Kpid2AxuWysyGe/lqxdIYfPmWCOKko68pkwcI+NJZoIZaK+C4Ahpv3SvKlvPBS9/JxTsKXy7zKbBrLQfqSGHRX06sciHtDD9BxY0kQmh0CezvZvl+inqodoTL6gS7QfEt4pdagKb2vYvJrDNdyZNJSyuI357oTMGpS4bOCfxl5iQY73MttZXnC8OqmMJAWOcMhwMIayKjJJPALkCVyi5bHeqORepMIAx4QvAb/N1IObe+ltUCkmofSqxk0g26V6xcVB/ECfdjwPWY0h76MhCC+VkncuGImRcGaUQ4j/tnKDN2wDnst4WFs9xZf4Jq55gQyz+6loxU3Nhj3TzOpl8vFC92ozqfz4THjiymxstJfff0UidGQrP6rmWFTJFf5TePFdqVwkEVTs/tasetVP9aFL4ixR89A1uHQEL/n3Eby6AyD6ODIP0qTIkLadPe8yNrT9Qvg2FFRPOAbMmQyDk=
-  distributions: sdist
+  distributions: sdist bdist_wheel
   skip_existing: true
   skip_cleanup: true
   on:
