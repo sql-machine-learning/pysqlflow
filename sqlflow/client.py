@@ -99,11 +99,12 @@ class Client:
         :param operation: SQL statement to be executed. Split by ";"
         :type operation: str.
 
-        :returns: list of sqlflow.client.Rows. One row for each row.
+        :returns: list of sqlflow.client.Rows. One Rows for each SQL statement.
 
         Example:
 
         >>> client.execute("select * from iris limit 1")
+        >>> client.execute("select * from iris limit 1; select count(*) from iris")
 
         """
         return_rows = []
