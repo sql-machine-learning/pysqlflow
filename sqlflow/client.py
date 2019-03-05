@@ -94,12 +94,12 @@ class Client:
         self._stub = pb_grpc.SQLFlowStub(channel)
 
     def execute(self, operation):
-        """Run a SQL statement
+        """Run one or several SQL statement
 
-        :param operation: SQL statement to be executed.
+        :param operation: SQL statement to be executed. Split by ";"
         :type operation: str.
 
-        :returns: sqlflow.client.Rows
+        :returns: list of sqlflow.client.Rows. One row for each row.
 
         Example:
 

@@ -33,9 +33,22 @@ class ClientServerTest(unittest.TestCase):
             log_mock.info.assert_called_with("extended sql")
 
         expected_table = MockServicer.get_test_table()
-        rows = self.client.execute("select * from galaxy")
+        rows = self.client.execute("select * from galaxy")[0]
         assert expected_table["column_names"] == rows.column_names()
         assert expected_table["rows"] == [r for r in rows.rows()]
+
+
+    def test_execute_stream(self):
+        with mock.patch('sqlflow.client._LOGGER') as log_mock:
+            self.client.execute("select * from galaxy train ..")
+            log_mock.info.assert_called_with("extended sql")
+
+        expected_table = MockServicer.get_test_table()
+        rows_list = self.client.execute("select * from galaxy; select * from galaxy;")
+        assert len(rows_list) == 2
+        for rows in rows_list:
+            assert expected_table["column_names"] == rows.column_names()
+            assert expected_table["rows"] == [r for r in rows.rows()]
 
     def test_decode_time(self):
         any_message = Any()
