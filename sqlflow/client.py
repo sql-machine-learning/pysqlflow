@@ -13,17 +13,19 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Rows:
-    def __init__(self, column_names, rows_gen):
+    def __init__(self, column_names, rows_gen, rows = None):
         """Query result of sqlflow.client.Client.execute
 
         :param column_names: column names
         :type column_names: list[str].
         :param rows_gen: rows generator
         :type rows_gen: generator
+        :param rows: rows data. if rows is None, rows_gen will be used to gen rows.
+        :type rows: list[str]
         """
         self._column_names = column_names
         self._rows_gen = rows_gen
-        self._rows = None
+        self._rows = rows
 
     def column_names(self):
         """Column names
@@ -104,19 +106,33 @@ class Client:
         >>> client.execute("select * from iris limit 1")
 
         """
-        stream_response = self._stub.Run(pb.Request(sql=operation))
-        first = next(stream_response)
-        if first.WhichOneof('response') == 'message':
-            _LOGGER.info(first.message.message)
+        return_rows = []
+        for one_operation in operation.split(";") :
+            if not one_operation.strip():
+                continue
+            one_operation += ";"
+            stream_response = self._stub.Run(pb.Request(sql=one_operation))
+            last_column_names = None
+            column_data = []
             for res in stream_response:
-                _LOGGER.info(res.message.message)
-        else:
-            column_names = [column_name for column_name in first.head.column_names]
+                first = res
+                if first.WhichOneof('response') == 'message':
+                    _LOGGER.info(first.message.message)
+                elif first.WhichOneof('response') == 'head':
+                    if last_column_names:
+                        raise TypeError("Wrong data. The stream response has two header".format(first))
+                    last_column_names = [column_name for column_name in first.head.column_names]
+                elif first.WhichOneof('response') == 'row':
+                    if not last_column_names:
+                        raise TypeError("Wrong data. The row without column name".format(first))
+                    column_data.append([self._decode_any(a) for a in res.row.data])
+                else :
+                    raise TypeError("Unsupported response {}".format(first))
 
-            def rows_gen():
-                for res in stream_response:
-                    yield [self._decode_any(a) for a in res.row.data]
-            return Rows(column_names, rows_gen)
+            if last_column_names:
+                return_rows.append(Rows(last_column_names, None, column_data))
+        if len(return_rows) > 0:
+            return return_rows; # TODO huangxi.hx better display on jupyter
 
     @classmethod
     def _decode_any(cls, any_message):
