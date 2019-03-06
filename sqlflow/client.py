@@ -1,6 +1,7 @@
 import os
 import logging
 import grpc
+import sqlparse
 
 import google.protobuf.wrappers_pb2 as wrapper
 from google.protobuf.timestamp_pb2 import Timestamp
@@ -108,10 +109,9 @@ class Client:
 
         """
         return_rows = []
-        for one_operation in operation.split(";") :
+        for one_operation in sqlparse.split(operation):
             if not one_operation.strip():
                 continue
-            one_operation += ";"
             stream_response = self._stub.Run(pb.Request(sql=one_operation))
             last_column_names = None
             column_data = []

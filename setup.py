@@ -21,6 +21,7 @@ REQUIRED = [
     'grpcio >=1.17, <2',
     'ipython>=1.0',
     'prettytable',
+    'sqlparse',
 ]
 SETUP_REQUIRED = [
     'pytest-runner'
