@@ -7,9 +7,9 @@ import os
 from setuptools import find_packages, setup
 
 # Package meta-data.
-NAME = 'sqlflow'
-DESCRIPTION = 'SQLFlow client library for Python.'
-URL = 'https://github.com/wangkuiyi/sqlflow'
+NAME = 'pysqlflow'
+DESCRIPTION = 'Python client of SQLFlow.'
+URL = 'https://github.com/wangkuiyi/pysqlflow'
 EMAIL = 'kuisong.tong@gmail.com'
 AUTHOR = 'Kuisong Tong'
 REQUIRES_PYTHON = '>=3.5.0'
@@ -68,9 +68,9 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     packages=find_packages(exclude=('tests',)),
-    package_data={'sqlflow': ['proto/*.py']},
+    package_data={'pysqlflow': ['proto/*.py']},
     entry_points={
-        'console_scripts': ['sqlflow = sqlflow.__main__:main'],
+        'console_scripts': ['pysqlflow = pysqlflow.__main__:main'],
     },
     install_requires=REQUIRED,
     setup_requires=SETUP_REQUIRED,
