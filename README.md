@@ -28,6 +28,9 @@ You can read the Sphinx generated docs at:
 ### Release
 `make release`
 
+### Generate Documentation
+`make doc`
+
 ### Generate GRPC client
 GRPC client code has been generated when you setup environment. 
 If you would like to regenerate it, please run `make protoc`.
