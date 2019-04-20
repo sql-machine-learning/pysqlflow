@@ -17,9 +17,7 @@ You can read the Sphinx generated docs at:
 
 ## Prerequisite
 
-- Python 3
-
-  On macOS, you can install Python 3 by running `brew install python`.
+`pysqlflow` requires Python 3.  On macOS, you can install it by running `brew install python`.
 
 ### Setup Environment
 
@@ -32,8 +30,3 @@ You can read the Sphinx generated docs at:
 ### Release
 
 `make release`
-
-### Generate gRPC client
-
-gRPC client code has been generated when you setup environment. 
-If you would like to regenerate it, please run `make protoc`.
