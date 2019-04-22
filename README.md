@@ -1,6 +1,6 @@
 # sqlflow [![Build Status](https://travis-ci.org/wangkuiyi/pysqlflow.svg?branch=develop)](https://travis-ci.org/wangkuiyi/pysqlflow) [![PyPI Package](https://img.shields.io/pypi/v/sqlflow.svg)](https://pypi.python.org/pypi/sqlflow)
 
-[SQLFlow](https://github.com/wangkuiyi/sqlflow) client library for Python.
+[SQLFlow](https://github.com/sql-machine-learning/sqlflow) client library for Python.
 
 ## Installation
 
