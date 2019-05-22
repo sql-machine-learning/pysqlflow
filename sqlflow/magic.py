@@ -2,6 +2,7 @@ import sys
 import logging
 
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
+from IPython.display import display_javascript
 from sqlflow.client import Client, _LOGGER
 
 @magics_class
@@ -45,6 +46,9 @@ def load_ipython_extension(ipython):
     out_handler.setLevel(logging.INFO)
     _LOGGER.addHandler(out_handler)
     _LOGGER.setLevel(logging.INFO)
+
+    js = "IPython.CodeCell.options_default.highlight_modes['magic_sql'] = {'reg':[/^%%sqlflow/]};"
+    display_javascript(js, raw=True)
 
     magics = SqlFlowMagic(ipython)
     ipython.register_magics(magics)
