@@ -6,8 +6,6 @@
 Welcome to pysqlflow's documentation!
 =====================================
 
-Hi, this is a documentation.
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
