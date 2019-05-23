@@ -1,4 +1,4 @@
-# sqlflow [![Build Status](https://travis-ci.org/wangkuiyi/pysqlflow.svg?branch=develop)](https://travis-ci.org/wangkuiyi/pysqlflow) [![PyPI Package](https://img.shields.io/pypi/v/sqlflow.svg)](https://pypi.python.org/pypi/sqlflow)
+# sqlflow [![Build Status](https://travis-ci.org/sql-machine-learning/pysqlflow.svg?branch=develop)](https://travis-ci.org/sql-machine-learning/pysqlflow) [![PyPI Package](https://img.shields.io/pypi/v/sqlflow.svg)](https://pypi.python.org/pypi/sqlflow)
 
 [SQLFlow](https://github.com/sql-machine-learning/sqlflow) client library for Python.
 
@@ -11,7 +11,7 @@ This package is available on PyPI as `pysqlflow`. So you can install it by runni
 ## Documentation
 
 You can read the Sphinx generated docs at:
-[http://wangkuiyi.github.io/pysqlflow/](http://wangkuiyi.github.io/pysqlflow/)
+[http://sql-machine-learning.github.io/pysqlflow/](http://sql-machine-learning.github.io/pysqlflow/)
 
 ## Development
 
