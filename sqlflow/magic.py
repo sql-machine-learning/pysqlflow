@@ -4,6 +4,10 @@ import logging
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
 from sqlflow.client import Client, _LOGGER
 
+# For changing input cell syntax highlighting logic for the entire session
+# http://stackoverflow.com/questions/28703626/ipython-change-input-cell-syntax-highlighting-logic-for-entire-session
+from IPython.display import display_javascript
+
 @magics_class
 class SqlFlowMagic(Magics):
     """
@@ -45,6 +49,10 @@ def load_ipython_extension(ipython):
     out_handler.setLevel(logging.INFO)
     _LOGGER.addHandler(out_handler)
     _LOGGER.setLevel(logging.INFO)
+
+    # Change input cell syntax highlighting to SQL
+    js = "IPython.CodeCell.options_default.highlight_modes['magic_sql'] = {'reg':[/^%%sqlflow/]};"
+    display_javascript(js, raw=True)
 
     magics = SqlFlowMagic(ipython)
     ipython.register_magics(magics)
