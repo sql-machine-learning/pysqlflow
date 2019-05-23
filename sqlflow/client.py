@@ -104,7 +104,15 @@ class Client:
         >>> client.execute("select * from iris limit 1")
 
         """
-        stream_response = self._stub.Run(pb.Request(sql=operation))
+        try:
+            stream_response = self._stub.Run(pb.Request(sql=operation))
+            return self.display(stream_response)
+        except grpc.RpcError as e:
+            _LOGGER.error("%s\n%s", e.code(), e.details())
+            
+    @classmethod
+    def display(cls, stream_response):
+        """Display stream response like log or table.row"""
         first = next(stream_response)
         if first.WhichOneof('response') == 'message':
             _LOGGER.info(first.message.message)
@@ -115,7 +123,7 @@ class Client:
 
             def rows_gen():
                 for res in stream_response:
-                    yield [self._decode_any(a) for a in res.row.data]
+                    yield [cls._decode_any(a) for a in res.row.data]
             return Rows(column_names, rows_gen)
 
     @classmethod

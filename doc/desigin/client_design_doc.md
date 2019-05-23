@@ -2,7 +2,7 @@
 
 ## Overview
 
-SQLFlow Client connects [sqlflowserver](https://github.com/wangkuiyi/sqlflowserver).
+SQLFlow Client connects [sqlflowserver](https://github.com/sql-machine-learning/sqlflowserver).
 It only one method `Run` which takes a SQL statement and returns a `RowSet` object.
 
 ## Example

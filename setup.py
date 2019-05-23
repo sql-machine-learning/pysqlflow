@@ -9,7 +9,7 @@ from setuptools import find_packages, setup
 # Package meta-data.
 NAME = 'sqlflow'
 DESCRIPTION = 'SQLFlow client library for Python.'
-URL = 'https://github.com/wangkuiyi/sqlflow'
+URL = 'https://github.com/sql-machine-learning/sqlflow'
 EMAIL = 'kuisong.tong@gmail.com'
 AUTHOR = 'Kuisong Tong'
 REQUIRES_PYTHON = '>=3.5.0'
@@ -68,6 +68,7 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     packages=find_packages(exclude=('tests',)),
+    package_data={'sqlflow': ['proto/*.py']},
     entry_points={
         'console_scripts': ['sqlflow = sqlflow.__main__:main'],
     },
@@ -75,7 +76,6 @@ setup(
     setup_requires=SETUP_REQUIRED,
     tests_require=TEST_REQUIRED,
     extras_require=EXTRAS,
-    include_package_data=True,
     license='Apache License 2.0',
     classifiers=[
         # Trove classifiers
