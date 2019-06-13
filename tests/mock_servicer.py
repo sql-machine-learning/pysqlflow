@@ -69,10 +69,15 @@ class MockServicer(pb_grpc.SQLFlowServicer):
         return res
 
 
-def _server(port, event):
+def _server(port, event, ca_crt, ca_key):
     svr = grpc.server(futures.ThreadPoolExecutor(max_workers=2))
+    with open(ca_key, "rb") as f:
+        private_key = f.read()
+    with open(ca_crt, "rb") as f:
+        certification_chain = f.read()
+    server_credentials = grpc.ssl_server_credentials( ( (private_key, certification_chain), ) )
     pb_grpc.add_SQLFlowServicer_to_server(MockServicer(), svr)
-    svr.add_insecure_port("[::]:%d" % port)
+    svr.add_secure_port('[::]:%d' % port, server_credentials)
     svr.start()
     try:
         event.wait()

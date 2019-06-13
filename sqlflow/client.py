@@ -69,16 +69,21 @@ class Rows:
 
 
 class Client:
-    def __init__(self, server_url=None):
+    def __init__(self, server_url=None, ca_crt=None):
         """A minimum client that issues queries to and fetch results/logs from sqlflowserver.
 
         :param server_url: sqlflowserver url. If None, read value from
                            environment variable SQLFLOW_SERVER.
         :type server_url: str.
+
+        :param ca_crt: Path to CA certificates of SQLFlow client, if None,
+                       try to find the file from the environment variable:
+                       SQLFLOW_CA_CRT, otherwise using insecure client.
+        :type ca_crt: str.
+
         :raises: ValueError
 
         Example:
-
         >>> client = sqlflow.Client(server_url="localhost:50051")
 
         """
@@ -87,9 +92,19 @@ class Client:
                 raise ValueError("Can't find environment variable SQLFLOW_SERVER")
             server_url = os.environ["SQLFLOW_SERVER"]
 
-        # FIXME(tonyyang-svail): change insecure_channel to secure_channel
-        channel = grpc.insecure_channel(server_url)
-        self._stub = pb_grpc.SQLFlowStub(channel)
+        self._stub = pb_grpc.SQLFlowStub(self.newRPCChannel(server_url, ca_crt))
+
+    def newRPCChannel(self, server_url, ca_crt):
+        if ca_crt is None and "SQLFLOW_CA_CRT" not in os.environ:
+            # client would connect SQLFLow gRPC server with insecure mode.
+            channel = grpc.insecure_channel(server_url) 
+        else:
+            if ca_crt is None:
+                ca_crt = os.environ["SQLFLOW_CA_CRT"]
+            with open(ca_crt, "rb") as f:
+                creds = grpc.ssl_channel_credentials(f.read())
+            channel = grpc.secure_channel(server_url, creds)
+        return channel
 
     def execute(self, operation):
         """Run a SQL statement
