@@ -10,7 +10,7 @@ parser.add_argument("--ca_crt", type=str, help="Path to CA certificates of SQLFl
 def main():
     args = parser.parse_args()
 
-    client = Client(server_url=args.url, args.ca_crt)
+    client = Client(server_url=args.url, ca_crt=args.ca_crt)
     for sql in args.sql:
         print("executing: {}".format(sql))
         for res in client.execute(sql):
