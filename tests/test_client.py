@@ -67,6 +67,3 @@ class ClientServerTest(unittest.TestCase):
         null_message = pb.Row.Null()
         any_message.Pack(null_message)
         assert Client._decode_any(any_message) is None
-
-if __name__ == "__main__":
-    unittest.main()
