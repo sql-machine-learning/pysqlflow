@@ -1,3 +1,3 @@
 [submodule "submodules/sqlflow"]
 	path = submodules/sqlflow
-	url = git@github.com:sql-machine-learning/sqlflow.git
+	url = https://github.com/sql-machine-learning/sqlflow.git
