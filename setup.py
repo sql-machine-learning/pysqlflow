@@ -67,8 +67,8 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=find_packages(exclude=('tests',)),
-    package_data={'sqlflow': ['proto/*.py']},
+    packages=find_packages(exclude=('tests','submodules')),
+    package_data={'sqlflow': ['sqlflow/server/proto/*.py']},
     entry_points={
         'console_scripts': ['sqlflow = sqlflow.__main__:main'],
     },

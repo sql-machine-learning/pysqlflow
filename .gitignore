@@ -1,4 +1,4 @@
-sqlflow/proto
+sqlflow/server
 
 venv/
 build/

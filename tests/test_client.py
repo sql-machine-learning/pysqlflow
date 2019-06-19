@@ -12,7 +12,7 @@ from tests.mock_servicer import _server, MockServicer
 
 from google.protobuf.timestamp_pb2 import Timestamp
 from google.protobuf.any_pb2 import Any
-import sqlflow.proto.sqlflow_pb2 as pb
+import sqlflow.server.proto.sqlflow_pb2 as pb
 
 def generateTempCA():
     tmp_dir = tempfile.mkdtemp(suffix="sqlflow_ssl", dir="/tmp")

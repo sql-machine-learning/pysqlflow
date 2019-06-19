@@ -5,8 +5,8 @@ import grpc
 import google.protobuf.wrappers_pb2 as wrapper
 from google.protobuf.timestamp_pb2 import Timestamp
 
-import sqlflow.proto.sqlflow_pb2 as pb
-import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
+import sqlflow.server.proto.sqlflow_pb2 as pb
+import sqlflow.server.proto.sqlflow_pb2_grpc as pb_grpc
 
 
 _LOGGER = logging.getLogger(__name__)

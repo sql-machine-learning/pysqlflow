@@ -3,8 +3,8 @@ from concurrent import futures
 
 import google.protobuf.wrappers_pb2 as wrapper
 
-import sqlflow.proto.sqlflow_pb2 as pb
-import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
+import sqlflow.server.proto.sqlflow_pb2 as pb
+import sqlflow.server.proto.sqlflow_pb2_grpc as pb_grpc
 
 
 class MockServicer(pb_grpc.SQLFlowServicer):
