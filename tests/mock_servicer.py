@@ -20,6 +20,8 @@ class MockServicer(pb_grpc.SQLFlowServicer):
             else:
                 for res in MockServicer.table_response(MockServicer.get_test_table()):
                     yield res
+        elif SQL == "TEST VERIFY SESSION":
+            yield MockServicer.message_response("|".join([request.session.token, request.session.db_conn_str]))
         else:
             yield MockServicer.message_response('bad request', 0)
 

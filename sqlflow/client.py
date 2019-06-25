@@ -92,9 +92,9 @@ class Client:
                 raise ValueError("Can't find environment variable SQLFLOW_SERVER")
             server_url = os.environ["SQLFLOW_SERVER"]
 
-        self._stub = pb_grpc.SQLFlowStub(self.newRPCChannel(server_url, ca_crt))
+        self._stub = pb_grpc.SQLFlowStub(self.new_rpc_channel(server_url, ca_crt))
 
-    def newRPCChannel(self, server_url, ca_crt):
+    def new_rpc_channel(self, server_url, ca_crt):
         if ca_crt is None and "SQLFLOW_CA_CRT" not in os.environ:
             # client would connect SQLFLow gRPC server with insecure mode.
             channel = grpc.insecure_channel(server_url) 
@@ -105,6 +105,12 @@ class Client:
                 creds = grpc.ssl_channel_credentials(f.read())
             channel = grpc.secure_channel(server_url, creds)
         return channel
+
+    def sql_request(self, sql):
+        token = os.getenv("SQLFLOW_USER_TOKEN", "")
+        db_conn_str = os.getenv("SQLFLOW_DATASOURCE", "")
+        se = pb.Session(token=token, db_conn_str=db_conn_str)
+        return pb.Request(sql=sql, session=se)
 
     def execute(self, operation):
         """Run a SQL statement
@@ -120,7 +126,7 @@ class Client:
 
         """
         try:
-            stream_response = self._stub.Run(pb.Request(sql=operation))
+            stream_response = self._stub.Run(self.sql_request(operation))
             return self.display(stream_response)
         except grpc.RpcError as e:
             _LOGGER.error("%s\n%s", e.code(), e.details())
