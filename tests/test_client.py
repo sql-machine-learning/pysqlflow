@@ -67,3 +67,12 @@ class ClientServerTest(unittest.TestCase):
         null_message = pb.Row.Null()
         any_message.Pack(null_message)
         assert Client._decode_any(any_message) is None
+    
+    def test_session(self):
+        token = "unittest-user"
+        ds = "maxcompute://AK:SK@host:port" 
+        os.environ["SQLFLOW_USER_TOKEN"] = token
+        os.environ["SQLFLOW_DATASOURCE"] = ds
+        with mock.patch('sqlflow.client._LOGGER') as log_mock:
+            self.client.execute("TEST VERIFY SESSION")
+            log_mock.info.assert_called_with("|".join([token, ds]))
