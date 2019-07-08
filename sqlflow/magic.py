@@ -45,11 +45,6 @@ class SqlFlowMagic(Magics):
         return self.client.execute('\n'.join([line, cell]))
 
 def load_ipython_extension(ipython):
-    out_handler = logging.StreamHandler(sys.stdout)
-    out_handler.setLevel(logging.INFO)
-    _LOGGER.addHandler(out_handler)
-    _LOGGER.setLevel(logging.INFO)
-
     # Change input cell syntax highlighting to SQL
     js = "IPython.CodeCell.options_default.highlight_modes['magic_sql'] = {'reg':[/^%%sqlflow/]};"
     display_javascript(js, raw=True)

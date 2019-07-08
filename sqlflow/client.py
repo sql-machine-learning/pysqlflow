@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import grpc
 
@@ -8,9 +9,10 @@ from google.protobuf.timestamp_pb2 import Timestamp
 import sqlflow.proto.sqlflow_pb2 as pb
 import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
 
-
 _LOGGER = logging.getLogger(__name__)
-
+handler = logging.StreamHandler(sys.stdout)
+_LOGGER.setLevel(logging.INFO)
+_LOGGER.addHandler(handler)
 
 class Rows:
     def __init__(self, column_names, rows_gen):
