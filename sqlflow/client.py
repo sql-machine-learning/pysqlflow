@@ -111,7 +111,12 @@ class Client:
     def sql_request(self, sql):
         token = os.getenv("SQLFLOW_USER_TOKEN", "")
         db_conn_str = os.getenv("SQLFLOW_DATASOURCE", "")
-        se = pb.Session(token=token, db_conn_str=db_conn_str)
+        exit_on_submit_env = os.getenv("SQLFLOW_EXIT_ON_SUBMIT", "True")
+        if exit_on_submit_env.isdigit():
+            exit_on_submit = bool(int(exit_on_submit_env))
+        else:
+            exit_on_submit = exit_on_submit_env.lower() == "true"
+        se = pb.Session(token=token, db_conn_str=db_conn_str, exit_on_submit=exit_on_submit)
         return pb.Request(sql=sql, session=se)
 
     def execute(self, operation):
