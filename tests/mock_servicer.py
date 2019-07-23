@@ -22,7 +22,7 @@ class MockServicer(pb_grpc.SQLFlowServicer):
                     yield res
         elif SQL == "TEST VERIFY SESSION":
             # TODO(Yancey1989): using a elegant way to test the session instead of the trick.
-            yield MockServicer.message_response("|".join([request.session.token, request.session.db_conn_str, str(request.session.exit_on_submit)]))
+            yield MockServicer.message_response("|".join([request.session.token, request.session.db_conn_str, str(request.session.exit_on_submit), request.session.user_id]))
         else:
             yield MockServicer.message_response('bad request', 0)
 

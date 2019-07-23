@@ -74,6 +74,7 @@ class ClientServerTest(unittest.TestCase):
         os.environ["SQLFLOW_USER_TOKEN"] = token
         os.environ["SQLFLOW_DATASOURCE"] = ds
         os.environ["SQLFLOW_EXIT_ON_SUBMIT"] = "TRUE"
+        os.environ["SQLFLOW_USER_ID"] = "sqlflow_user"
         with mock.patch('sqlflow.client._LOGGER') as log_mock:
             self.client.execute("TEST VERIFY SESSION")
-            log_mock.info.assert_called_with("|".join([token, ds, "True"]))
+            log_mock.info.assert_called_with("|".join([token, ds, "True", "sqlflow_user"]))
