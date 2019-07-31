@@ -7,7 +7,7 @@ import tempfile
 import subprocess
 import shutil
 
-from sqlflow.client import Client, expand_env
+from sqlflow.client import Client
 from tests.mock_servicer import _server, MockServicer
 
 from google.protobuf.timestamp_pb2 import Timestamp

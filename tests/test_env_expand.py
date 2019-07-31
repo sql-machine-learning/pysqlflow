@@ -26,6 +26,3 @@ class EnvExpanderTest(unittest.TestCase):
         with self.assertRaises(EnvExpanderError):
             self.expander.expand(sql)
 
-if __name__=="__main__":
-    unittest.main()
-
