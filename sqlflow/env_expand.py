@@ -13,9 +13,9 @@ class EnvExpanderError(Exception):
 class EnvExpander(object):
     def __init__(self, environ=os.environ):
         self.environ = environ
-        self.pattern_env = re.compile("\$\{(.*?)\}")
+        self.pattern_env = re.compile(r'\$\{(.*?)\}')
         # TODO(Yancey1989): support more date expression
-        self.pattern_date_expr = re.compile(r"(yyyymmdd)\Z|(yyyymmdd)\s(\+|\-)\s(\d+)d")
+        self.pattern_date_expr = re.compile(r"(yyyyMMdd)\Z|(yyyyMMdd)\s(\+|\-)\s(\d+)d")
         
     def _match_date_expr(self, expr):
         return re.match(self.pattern_date_expr, expr)
@@ -23,7 +23,7 @@ class EnvExpander(object):
     def parse_bizdate(self, expr):
         bizdate = self.environ["BIZDATE"][:8]
         if not bizdate:
-            raise EnvExpanderError("The date format ${yyyymmdd +/- 1d} need set the OS environment variable ${BIZDATE}")
+            raise EnvExpanderError("The date format ${yyyyMMdd +/- 1d} need set the OS environment variable ${BIZDATE}")
         dt = datetime.strptime(bizdate, "%Y%m%d")
         m = self._match_date_expr(expr)
         if m.groups()[0]:
