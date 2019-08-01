@@ -2,12 +2,15 @@ import os
 import sys
 import logging
 import grpc
+import re
 
 import google.protobuf.wrappers_pb2 as wrapper
 from google.protobuf.timestamp_pb2 import Timestamp
 
 import sqlflow.proto.sqlflow_pb2 as pb
 import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
+
+from sqlflow.env_expand import EnvExpander, EnvExpanderError
 
 _LOGGER = logging.getLogger(__name__)
 handler = logging.StreamHandler(sys.stdout)
@@ -95,6 +98,7 @@ class Client:
             server_url = os.environ["SQLFLOW_SERVER"]
 
         self._stub = pb_grpc.SQLFlowStub(self.new_rpc_channel(server_url, ca_crt))
+        self._expander = EnvExpander(os.environ)
 
     def new_rpc_channel(self, server_url, ca_crt):
         if ca_crt is None and "SQLFLOW_CA_CRT" not in os.environ:
@@ -118,6 +122,10 @@ class Client:
         else:
             exit_on_submit = exit_on_submit_env.lower() == "true"
         se = pb.Session(token=token, db_conn_str=db_conn_str, exit_on_submit=exit_on_submit, user_id=user_id)
+        try:
+            sql = self._expander.expand(sql)
+        except Exception as e:
+            _LOGGER.error("")
         return pb.Request(sql=sql, session=se)
 
     def execute(self, operation):
@@ -138,6 +146,8 @@ class Client:
             return self.display(stream_response)
         except grpc.RpcError as e:
             _LOGGER.error("%s\n%s", e.code(), e.details())
+        except EnvExpanderError as e:
+            _LOGGER.error(e.message)
             
     @classmethod
     def display(cls, stream_response):
@@ -173,3 +183,4 @@ class Client:
                 any_message.Unpack(timestamp_message)
                 return timestamp_message.ToDatetime()
             raise TypeError("Unsupported type {}".format(any_message))
+
