@@ -16,6 +16,10 @@ _LOGGER = logging.getLogger(__name__)
 handler = logging.StreamHandler(sys.stdout)
 _LOGGER.setLevel(logging.INFO)
 _LOGGER.addHandler(handler)
+# default timeout is 4 hours to tolerate waiting training
+# jobs to finish.
+DEFAULT_TIMEOUT=3600 * 4
+
 
 class Rows:
     def __init__(self, column_names, rows_gen):
@@ -142,7 +146,7 @@ class Client:
 
         """
         try:
-            stream_response = self._stub.Run(self.sql_request(operation))
+            stream_response = self._stub.Run(self.sql_request(operation), timeout=DEFAULT_TIMEOUT)
             return self.display(stream_response)
         except grpc.RpcError as e:
             _LOGGER.error("%s\n%s", e.code(), e.details())
