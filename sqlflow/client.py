@@ -16,9 +16,9 @@ _LOGGER = logging.getLogger(__name__)
 handler = logging.StreamHandler(sys.stdout)
 _LOGGER.setLevel(logging.INFO)
 _LOGGER.addHandler(handler)
-# default timeout is 4 hours to tolerate waiting training
+# default timeout is 10 hours to tolerate waiting training
 # jobs to finish.
-DEFAULT_TIMEOUT=3600 * 4
+DEFAULT_TIMEOUT=3600 * 10
 
 
 class Rows:
@@ -107,7 +107,7 @@ class Client:
     def new_rpc_channel(self, server_url, ca_crt):
         if ca_crt is None and "SQLFLOW_CA_CRT" not in os.environ:
             # client would connect SQLFLow gRPC server with insecure mode.
-            channel = grpc.insecure_channel(server_url) 
+            channel = grpc.insecure_channel(server_url)
         else:
             if ca_crt is None:
                 ca_crt = os.environ["SQLFLOW_CA_CRT"]
@@ -121,6 +121,7 @@ class Client:
         db_conn_str = os.getenv("SQLFLOW_DATASOURCE", "")
         exit_on_submit_env = os.getenv("SQLFLOW_EXIT_ON_SUBMIT", "True")
         user_id = os.getenv("SQLFLOW_USER_ID", "")
+        print("######using userid: ", user_id)
         if exit_on_submit_env.isdigit():
             exit_on_submit = bool(int(exit_on_submit_env))
         else:
@@ -152,7 +153,7 @@ class Client:
             _LOGGER.error("%s\n%s", e.code(), e.details())
         except EnvExpanderError as e:
             _LOGGER.error(e.message)
-            
+
     @classmethod
     def display(cls, stream_response):
         """Display stream response like log or table.row"""
