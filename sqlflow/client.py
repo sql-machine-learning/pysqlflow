@@ -121,7 +121,6 @@ class Client:
         db_conn_str = os.getenv("SQLFLOW_DATASOURCE", "")
         exit_on_submit_env = os.getenv("SQLFLOW_EXIT_ON_SUBMIT", "True")
         user_id = os.getenv("SQLFLOW_USER_ID", "")
-        print("######using userid: ", user_id)
         if exit_on_submit_env.isdigit():
             exit_on_submit = bool(int(exit_on_submit_env))
         else:
@@ -130,7 +129,8 @@ class Client:
         try:
             sql = self._expander.expand(sql)
         except Exception as e:
-            _LOGGER.error("")
+            _LOGGER.error("%s", e)
+            raise e
         return pb.Request(sql=sql, session=se)
 
     def execute(self, operation):
