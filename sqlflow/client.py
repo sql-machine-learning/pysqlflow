@@ -16,6 +16,10 @@ _LOGGER = logging.getLogger(__name__)
 handler = logging.StreamHandler(sys.stdout)
 _LOGGER.setLevel(logging.INFO)
 _LOGGER.addHandler(handler)
+# default timeout is 10 hours to tolerate waiting training
+# jobs to finish.
+DEFAULT_TIMEOUT=3600 * 10
+
 
 class Rows:
     def __init__(self, column_names, rows_gen):
@@ -103,7 +107,7 @@ class Client:
     def new_rpc_channel(self, server_url, ca_crt):
         if ca_crt is None and "SQLFLOW_CA_CRT" not in os.environ:
             # client would connect SQLFLow gRPC server with insecure mode.
-            channel = grpc.insecure_channel(server_url) 
+            channel = grpc.insecure_channel(server_url)
         else:
             if ca_crt is None:
                 ca_crt = os.environ["SQLFLOW_CA_CRT"]
@@ -125,7 +129,8 @@ class Client:
         try:
             sql = self._expander.expand(sql)
         except Exception as e:
-            _LOGGER.error("")
+            _LOGGER.error("%s", e)
+            raise e
         return pb.Request(sql=sql, session=se)
 
     def execute(self, operation):
@@ -142,13 +147,13 @@ class Client:
 
         """
         try:
-            stream_response = self._stub.Run(self.sql_request(operation))
+            stream_response = self._stub.Run(self.sql_request(operation), timeout=DEFAULT_TIMEOUT)
             return self.display(stream_response)
         except grpc.RpcError as e:
             _LOGGER.error("%s\n%s", e.code(), e.details())
         except EnvExpanderError as e:
             _LOGGER.error(e.message)
-            
+
     @classmethod
     def display(cls, stream_response):
         """Display stream response like log or table.row"""
