@@ -15,7 +15,7 @@ class EnvExpander(object):
         self.environ = environ
         self.pattern_env = re.compile(r'\$\{(.*?)\}')
         # TODO(Yancey1989): support more date expression
-        self.pattern_date_expr = re.compile(r"(yyyyMMdd)\Z|(yyyyMMdd).*(\+|\-).*(\d+)d")
+        self.pattern_date_expr = re.compile(r"(yyyyMMdd)\Z|(yyyyMMdd)\s*(\+|\-)\s*(\d+)d")
 
         
     def _match_date_expr(self, expr):
