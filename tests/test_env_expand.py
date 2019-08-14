@@ -15,12 +15,18 @@ class EnvExpanderTest(unittest.TestCase):
         expected_sql = "SELECT * from tablename where pt=20190731"
         assert new_sql == expected_sql
     
-    def test_expand_delta(self):
+    def test_bizdate_delta(self):
         sql = "SELECT * from ${t1} where pt=${yyyyMMdd + 1d}"
         new_sql = self.expander.expand(sql)
         expected_sql = "SELECT * from tablename where pt=20190801"
         assert new_sql == expected_sql
     
+    def test_bizdate_arbitrary_space(self):
+        sql = "SELECT * from ${t1} where pt=${yyyyMMdd+ 1d}"
+        new_sql = self.expander.expand(sql)
+        expected_sql = "SELECT * from tablename where pt=20190801"
+        assert new_sql == expected_sql
+
     def test_expand_error(self):
         sql = "SELECT * from ${no_exists} where pt=${yyyyMMdd + 1d}"
         with self.assertRaises(EnvExpanderError):
