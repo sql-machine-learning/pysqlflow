@@ -150,9 +150,11 @@ class Client:
             stream_response = self._stub.Run(self.sql_request(operation), timeout=DEFAULT_TIMEOUT)
             return self.display(stream_response)
         except grpc.RpcError as e:
-            _LOGGER.error("%s\n%s", e.code(), e.details())
+            # NOTE: raise exception to interrupt notebook execution. Or
+            # the notebook will continue execute the next block.
+            raise e
         except EnvExpanderError as e:
-            _LOGGER.error(e.message)
+            raise e
 
     @classmethod
     def display(cls, stream_response):
