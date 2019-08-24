@@ -23,6 +23,8 @@ class MockServicer(pb_grpc.SQLFlowServicer):
         elif SQL == "TEST VERIFY SESSION":
             # TODO(Yancey1989): using a elegant way to test the session instead of the trick.
             yield MockServicer.message_response("|".join([request.session.token, request.session.db_conn_str, str(request.session.exit_on_submit), request.session.user_id]))
+        elif SQL == "TEST RENDER HTML":
+            yield MockServicer.message_response("<div id='i391RMGIH3VCTM4GHMN4R'>")
         else:
             yield MockServicer.message_response('bad request', 0)
 

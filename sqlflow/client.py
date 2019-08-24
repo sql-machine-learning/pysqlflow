@@ -161,9 +161,18 @@ class Client:
         """Display stream response like log or table.row"""
         first = next(stream_response)
         if first.WhichOneof('response') == 'message':
-            _LOGGER.info(first.message.message)
-            for res in stream_response:
-                _LOGGER.info(res.message.message)
+            # if the first line is html tag like,
+            # merge all return strings then render the html on notebook
+            if re.match(r'<[a-z][\s\S]*>.*', first.message.message):
+                resp_list = [first.message.message]
+                for res in stream_response:
+                    resp_list.append(res.message.message)
+                from IPython.core.display import display, HTML
+                display(HTML('\n'.join(resp_list)))
+            else:
+                _LOGGER.info(first.message.message)
+                for res in stream_response:
+                    _LOGGER.info(res.message.message)
         else:
             column_names = [column_name for column_name in first.head.column_names]
 

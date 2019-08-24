@@ -78,3 +78,9 @@ class ClientServerTest(unittest.TestCase):
         with mock.patch('sqlflow.client._LOGGER') as log_mock:
             self.client.execute("TEST VERIFY SESSION")
             log_mock.info.assert_called_with("|".join([token, ds, "True", "sqlflow_user"]))
+    
+    def test_draw_html(self):
+        from IPython.core.display import display, HTML
+        with mock.patch('IPython.core.display.HTML') as log_mock:
+            self.client.execute("TEST RENDER HTML")
+            log_mock.assert_called_with("<div id='i391RMGIH3VCTM4GHMN4R'>")
