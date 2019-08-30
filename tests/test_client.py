@@ -51,9 +51,10 @@ class ClientServerTest(unittest.TestCase):
             log_mock.info.assert_called_with("extended sql")
 
         expected_table = MockServicer.get_test_table()
-        rows = self.client.execute("select * from galaxy")
-        assert expected_table["column_names"] == rows.column_names()
-        assert expected_table["rows"] == [r for r in rows.rows()]
+        compound_msg = self.client.execute("select * from galaxy")
+        assert compound_msg.length() == 1
+        assert expected_table["column_names"] == compound_msg.get(0).column_names()
+        assert expected_table["rows"] == [r for r in compound_msg.get(0).rows()]
 
     def test_decode_time(self):
         any_message = Any()
