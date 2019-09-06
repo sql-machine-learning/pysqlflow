@@ -11,6 +11,8 @@ import sqlflow.proto.sqlflow_pb2 as pb
 import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
 
 from sqlflow.env_expand import EnvExpander, EnvExpanderError
+from sqlflow.rows import Rows
+from sqlflow.compound_message import CompoundMessage
 
 _LOGGER = logging.getLogger(__name__)
 handler = logging.StreamHandler(sys.stdout)
@@ -19,62 +21,6 @@ _LOGGER.addHandler(handler)
 # default timeout is 10 hours to tolerate waiting training
 # jobs to finish.
 DEFAULT_TIMEOUT=3600 * 10
-
-
-class Rows:
-    def __init__(self, column_names, rows_gen):
-        """Query result of sqlflow.client.Client.execute
-
-        :param column_names: column names
-        :type column_names: list[str].
-        :param rows_gen: rows generator
-        :type rows_gen: generator
-        """
-        self._column_names = column_names
-        self._rows_gen = rows_gen
-        self._rows = None
-
-    def column_names(self):
-        """Column names
-
-        :return: list[str]
-        """
-        return self._column_names
-
-    def rows(self):
-        """Rows
-
-        Example:
-
-        >>> [r for r in rows.rows()]
-
-        :return: list generator
-        """
-        if self._rows is None:
-            self._rows = []
-            for row in self._rows_gen():
-                self._rows.append(row)
-                yield row
-        else:
-            for row in self._rows:
-                yield row
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        from prettytable import PrettyTable
-        table = PrettyTable(self._column_names)
-        for row in self.rows():
-            table.add_row(row)
-        return table.__str__()
-
-    def to_dataframe(self):
-        """Convert Rows to pandas.Dataframe
-
-        :return: pandas.Dataframe
-        """
-        raise NotImplementedError
 
 
 class Client:
@@ -159,27 +105,48 @@ class Client:
     @classmethod
     def display(cls, stream_response):
         """Display stream response like log or table.row"""
-        first = next(stream_response)
-        if first.WhichOneof('response') == 'message':
-            # if the first line is html tag like,
-            # merge all return strings then render the html on notebook
-            if re.match(r'<[a-z][\s\S]*>.*', first.message.message):
-                resp_list = [first.message.message]
-                for res in stream_response:
-                    resp_list.append(res.message.message)
-                from IPython.core.display import display, HTML
-                display(HTML('\n'.join(resp_list)))
+        compound_message = CompoundMessage()
+        while True:
+            try:
+                first = next(stream_response)
+            except StopIteration:
+                break
+            if first.WhichOneof('response') == 'message':
+                # if the first line is html tag like,
+                # merge all return strings then render the html on notebook
+                if re.match(r'<[a-z][\s\S]*>.*', first.message.message):
+                    resp_list = [first.message.message]
+                    for res in stream_response:
+                        if res.WhichOneof('response') == 'eoe':
+                            _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
+                            compound_message.add_html('\n'.join(resp_list), res)
+                            break
+                        resp_list.append(res.message.message)
+                    from IPython.core.display import display, HTML
+                    display(HTML('\n'.join(resp_list)))
+                else:
+                    _LOGGER.info(first.message.message)
+                    all_messages = []
+                    all_messages.append(first.message.message)
+                    for res in stream_response:
+                        if res.WhichOneof('response') == 'eoe':
+                            _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
+                            compound_message.add_message('\n'.join(all_messages), res)
+                            break
+                        _LOGGER.info(res.message.message)
+                        all_messages.append(res.message.message)
             else:
-                _LOGGER.info(first.message.message)
-                for res in stream_response:
-                    _LOGGER.info(res.message.message)
-        else:
-            column_names = [column_name for column_name in first.head.column_names]
-
-            def rows_gen():
-                for res in stream_response:
-                    yield [cls._decode_any(a) for a in res.row.data]
-            return Rows(column_names, rows_gen)
+                column_names = [column_name for column_name in first.head.column_names]
+                def rows_gen():
+                    for res in stream_response:
+                        if res.WhichOneof('response') == 'eoe':
+                            _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
+                            break
+                        yield [cls._decode_any(a) for a in res.row.data]
+                rows = Rows(column_names, rows_gen)
+                _LOGGER.info(rows)
+                compound_message.add_rows(rows, None)
+        return compound_message
 
     @classmethod
     def _decode_any(cls, any_message):
