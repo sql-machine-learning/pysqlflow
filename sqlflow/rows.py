@@ -1,5 +1,3 @@
-
-
 class Rows:
     def __init__(self, column_names, rows_gen):
         """Query result of sqlflow.client.Client.execute
@@ -42,15 +40,19 @@ class Rows:
         return self.__repr__()
 
     def __repr__(self):
-        from prettytable import PrettyTable
-        table = PrettyTable(self._column_names)
-        for row in self.rows():
-            table.add_row(row)
-        return table.__str__()
+        return self.to_dataframe().__repr__()
+
+    def _repr_html_(self):
+        return self.to_dataframe()._repr_html_()
 
     def to_dataframe(self):
         """Convert Rows to pandas.Dataframe
 
         :return: pandas.Dataframe
         """
-        raise NotImplementedError
+        # Fetch all the rows to self._rows
+        for r in self.rows():
+            pass
+        import pandas as pd
+        return pd.DataFrame(self._rows, columns=self._column_names)
+
