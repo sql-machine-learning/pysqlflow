@@ -20,7 +20,7 @@ REQUIRED = [
     'protobuf >=3.6, <4',
     'grpcio >=1.17, <2',
     'ipython>=1.0',
-    'prettytable',
+    'pandas',
 ]
 SETUP_REQUIRED = [
     'pytest-runner'
