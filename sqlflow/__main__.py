@@ -13,5 +13,5 @@ def main():
     client = Client(server_url=args.url, ca_crt=args.ca_crt)
     for sql in args.sql:
         print("executing: {}".format(sql))
-        for res in client.execute(sql):
-            print(res)
+        print(client.execute(sql))
+
