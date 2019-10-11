@@ -38,7 +38,6 @@ class ClientServerTest(unittest.TestCase):
         threading.Thread(target=_server, args=[port, cls.event, cls.ca_crt, ca_key]).start()
         # wait for start
         time.sleep(1)
-        print("ca_crt", cls.ca_crt)
         cls.client = Client(cls.server_url, cls.ca_crt)
 
     @classmethod
