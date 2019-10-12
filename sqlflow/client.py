@@ -146,7 +146,9 @@ class Client:
                 rows = Rows(column_names, rows_gen)
                 _LOGGER.info(rows)
                 compound_message.add_rows(rows, None)
-        return compound_message
+        if compound_message.length() == 1:
+            return compound_message.get(0)
+        return [compound_message.get(i) for i in range(compound_message.length())]
 
     @classmethod
     def _decode_any(cls, any_message):

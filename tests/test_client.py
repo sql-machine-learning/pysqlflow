@@ -32,12 +32,13 @@ class ClientServerTest(unittest.TestCase):
     def setUpClass(cls):
         # TODO: free port is better
         port = 8765
+        cls.server_url = "localhost:%d" % port
         cls.event = threading.Event()
-        cls.tmp_ca_dir, ca_crt, ca_key = generateTempCA()
-        threading.Thread(target=_server, args=[port, cls.event, ca_crt, ca_key]).start()
+        cls.tmp_ca_dir, cls.ca_crt, ca_key = generateTempCA()
+        threading.Thread(target=_server, args=[port, cls.event, cls.ca_crt, ca_key]).start()
         # wait for start
         time.sleep(1)
-        cls.client = Client("localhost:%d" % port, ca_crt)
+        cls.client = Client(cls.server_url, cls.ca_crt)
 
     @classmethod
     def tearDownClass(cls):
@@ -51,10 +52,14 @@ class ClientServerTest(unittest.TestCase):
             log_mock.info.assert_called_with("extended sql")
 
         expected_table = MockServicer.get_test_table()
-        compound_msg = self.client.execute("select * from galaxy")
-        assert compound_msg.length() == 1
-        assert expected_table["column_names"] == compound_msg.get(0).column_names()
-        assert expected_table["rows"] == [r for r in compound_msg.get(0).rows()]
+        rows = self.client.execute("select * from galaxy")
+        assert expected_table["column_names"] == rows.column_names()
+        assert expected_table["rows"] == [r for r in rows.rows()]
+
+    def test_cmd(self):
+        assert subprocess.call(["sqlflow", "--url", self.server_url,
+            "--ca_crt", self.ca_crt,
+            "select * from galaxy"]) == 0
 
     def test_decode_time(self):
         any_message = Any()
