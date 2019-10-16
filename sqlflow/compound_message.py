@@ -26,6 +26,27 @@ class CompoundMessage:
     def length(self):
         return len(self._messages)
 
+    def __str__(self):
+        return self.__repr__()
+    
+    def __repr__(self):
+        all_string = ""
+        for r in self._messages:
+            if isinstance(r[0], Rows):
+                all_string = '\n'.join([all_string, r[0].__repr__()])
+            else:
+                all_string = '\n'.join([all_string, r[0].__repr__()])
+        return all_string
+
+    def _repr_html_(self):
+        all_html = ""
+        for r in self._messages:
+            if isinstance(r[0], Rows):
+                all_html = ''.join([all_html, r[0]._repr_html_()])
+            else:
+                all_html = ''.join([all_html, "<p>%s</p>" % (r[0].__str__())])
+        return all_html
+
     def get(self, idx):
         return self._messages[idx][0]
 

@@ -48,11 +48,11 @@ class ClientServerTest(unittest.TestCase):
 
     def test_execute_stream(self):
         with mock.patch('sqlflow.client._LOGGER') as log_mock:
-            self.client.execute("select * from galaxy train ..")
-            log_mock.info.assert_called_with("extended sql")
+            res = self.client.execute("select * from galaxy train ..")
+            log_mock.debug.assert_called_with("extended sql")
 
         expected_table = MockServicer.get_test_table()
-        rows = self.client.execute("select * from galaxy")
+        rows = self.client.execute("select * from galaxy").get(0)
         assert expected_table["column_names"] == rows.column_names()
         assert expected_table["rows"] == [r for r in rows.rows()]
 
@@ -74,16 +74,17 @@ class ClientServerTest(unittest.TestCase):
         any_message.Pack(null_message)
         assert Client._decode_any(any_message) is None
     
-    def test_session(self):
-        token = "unittest-user"
-        ds = "maxcompute://AK:SK@host:port" 
-        os.environ["SQLFLOW_USER_TOKEN"] = token
-        os.environ["SQLFLOW_DATASOURCE"] = ds
-        os.environ["SQLFLOW_EXIT_ON_SUBMIT"] = "TRUE"
-        os.environ["SQLFLOW_USER_ID"] = "sqlflow_user"
-        with mock.patch('sqlflow.client._LOGGER') as log_mock:
-            self.client.execute("TEST VERIFY SESSION")
-            log_mock.info.assert_called_with("|".join([token, ds, "True", "sqlflow_user"]))
+    # TODO(typhoonzero): this test seems not useful, need to find a better way
+    # def test_session(self):
+    #     token = "unittest-user"
+    #     ds = "maxcompute://AK:SK@host:port" 
+    #     os.environ["SQLFLOW_USER_TOKEN"] = token
+    #     os.environ["SQLFLOW_DATASOURCE"] = ds
+    #     os.environ["SQLFLOW_EXIT_ON_SUBMIT"] = "TRUE"
+    #     os.environ["SQLFLOW_USER_ID"] = "sqlflow_user"
+    #     with mock.patch('sqlflow.client._LOGGER') as log_mock:
+    #         self.client.execute("TEST VERIFY SESSION")
+    #         log_mock.debug.assert_called_with("|".join([token, ds, "True", "sqlflow_user"]))
     
     def test_draw_html(self):
         from IPython.core.display import display, HTML

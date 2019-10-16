@@ -14,4 +14,3 @@ def main():
     for sql in args.sql:
         print("executing: {}".format(sql))
         print(client.execute(sql))
-
