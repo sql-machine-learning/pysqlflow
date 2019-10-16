@@ -125,7 +125,6 @@ class Client:
                     from IPython.core.display import display, HTML
                     display(HTML('\n'.join(resp_list)))
                 else:
-                    # _LOGGER.info(first.message.message)
                     all_messages = []
                     all_messages.append(first.message.message)
                     for res in stream_response:
@@ -133,7 +132,7 @@ class Client:
                             _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
                             compound_message.add_message('\n'.join(all_messages), res)
                             break
-                        # _LOGGER.info(res.message.message)
+                        _LOGGER.debug(res.message.message)
                         all_messages.append(res.message.message)
             else:
                 column_names = [column_name for column_name in first.head.column_names]
@@ -148,9 +147,6 @@ class Client:
                 rows.__str__()
                 compound_message.add_rows(rows, None)
         return compound_message
-        # if compound_message.length() == 1:
-        #     return compound_message.get(0)
-        # return [compound_message.get(i) for i in range(compound_message.length())]
 
     @classmethod
     def _decode_any(cls, any_message):
