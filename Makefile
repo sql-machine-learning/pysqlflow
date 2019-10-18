@@ -38,6 +38,9 @@ release: ## Release new version
 	sed -i '' "s/, 'dev'//" $(VERSION_FILE)
 	git commit -a -m "release $(VERSION)"
 
+	# Tag it
+	git tag v$(VERSION)
+
 	# Bump version for development
 	$(eval NEXT_VERSION := $(shell echo $(VERSION) | awk -F. '{print $$1"."($$2+1)".0"}'))
 	$(eval VERSION_CODE := $(shell echo $(NEXT_VERSION) | sed 's/\./, /g'))
@@ -45,8 +48,7 @@ release: ## Release new version
 	git commit -a -m "start $(NEXT_VERSION)"
 	git push origin develop
 
-	# Tag it, push the tag, release the package to pypi
-	git tag v$(VERSION)
+	# Push the tag, release the package to pypi
 	git push --tags
 
 doc:
