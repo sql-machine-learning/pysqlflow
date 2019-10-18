@@ -67,11 +67,18 @@ class Client:
         db_conn_str = os.getenv("SQLFLOW_DATASOURCE", "")
         exit_on_submit_env = os.getenv("SQLFLOW_EXIT_ON_SUBMIT", "True")
         user_id = os.getenv("SQLFLOW_USER_ID", "")
+        hive_location = os.getenv("SQLFLOW_HIVE_LOCATION", "")
+        hdfs_namenode_addr = os.getenv("SQLFLOW_HDFS_NAMENODE_ADDR", "")
         if exit_on_submit_env.isdigit():
             exit_on_submit = bool(int(exit_on_submit_env))
         else:
             exit_on_submit = exit_on_submit_env.lower() == "true"
-        se = pb.Session(token=token, db_conn_str=db_conn_str, exit_on_submit=exit_on_submit, user_id=user_id)
+        se = pb.Session(token=token,
+                        db_conn_str=db_conn_str,
+                        exit_on_submit=exit_on_submit,
+                        user_id=user_id,
+                        hive_location=hive_location,
+                        hdfs_namenode_addr=hdfs_namenode_addr)
         try:
             sql = self._expander.expand(sql)
         except Exception as e:
@@ -127,13 +134,15 @@ class Client:
                 else:
                     all_messages = []
                     all_messages.append(first.message.message)
+                    eoe = None
                     for res in stream_response:
                         if res.WhichOneof('response') == 'eoe':
                             _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
-                            compound_message.add_message('\n'.join(all_messages), res)
+                            eoe = res
                             break
                         _LOGGER.debug(res.message.message)
                         all_messages.append(res.message.message)
+                    compound_message.add_message('\n'.join(all_messages), eoe)
             else:
                 column_names = [column_name for column_name in first.head.column_names]
                 def rows_gen():

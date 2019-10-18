@@ -44,7 +44,7 @@ class CompoundMessage:
             if isinstance(r[0], Rows):
                 all_html = ''.join([all_html, r[0]._repr_html_()])
             else:
-                all_html = ''.join([all_html, "<p>%s</p>" % (r[0].__str__())])
+                all_html = ''.join([all_html, "<p>%s</p>" % (r[0].__str__().replace("\n", "<br>"))])
         return all_html
 
     def get(self, idx):
