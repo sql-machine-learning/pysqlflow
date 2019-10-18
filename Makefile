@@ -27,29 +27,27 @@ protoc: ## Generate python client from proto file
 release: ## Release new version
 	$(if $(shell git status -s), $(error "Please commit your changes or stash them before you release."))
 
-	# Remove dev from version number
+	# Make sure local develop branch is up-to-date
+	git fetch origin
 	git checkout develop
+	git merge origin/develop
+
+	# Remove dev from version number
 	$(eval VERSION := $(subst .dev,,$(shell python -c "exec(open('$(VERSION_FILE)').read());print(__version__)")))
 	$(info release $(VERSION)...)
 	sed -i '' "s/, 'dev'//" $(VERSION_FILE)
 	git commit -a -m "release $(VERSION)"
 
-	# Merge to master
-	git checkout master
-	git merge develop
-	git push origin master
-
-	# Tag it
-	git tag v$(VERSION)
-	git push --tags
-
 	# Bump version for development
-	git checkout develop
 	$(eval NEXT_VERSION := $(shell echo $(VERSION) | awk -F. '{print $$1"."($$2+1)".0"}'))
 	$(eval VERSION_CODE := $(shell echo $(NEXT_VERSION) | sed 's/\./, /g'))
 	sed -i '' -E "s/[0-9]+, [0-9]+, [0-9]+/$(VERSION_CODE), 'dev'/" $(VERSION_FILE)
 	git commit -a -m "start $(NEXT_VERSION)"
 	git push origin develop
+
+	# Tag it, push the tag, release the package to pypi
+	git tag v$(VERSION)
+	git push --tags
 
 doc:
 	$(MAKE) setup \
