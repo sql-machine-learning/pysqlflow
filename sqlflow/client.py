@@ -134,13 +134,15 @@ class Client:
                 else:
                     all_messages = []
                     all_messages.append(first.message.message)
+                    eoe = None
                     for res in stream_response:
                         if res.WhichOneof('response') == 'eoe':
                             _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
-                            compound_message.add_message('\n'.join(all_messages), res)
+                            eoe = res
                             break
                         _LOGGER.debug(res.message.message)
                         all_messages.append(res.message.message)
+                    compound_message.add_message('\n'.join(all_messages), eoe)
             else:
                 column_names = [column_name for column_name in first.head.column_names]
                 def rows_gen():
