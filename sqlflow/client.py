@@ -69,6 +69,9 @@ class Client:
         user_id = os.getenv("SQLFLOW_USER_ID", "")
         hive_location = os.getenv("SQLFLOW_HIVE_LOCATION", "")
         hdfs_namenode_addr = os.getenv("SQLFLOW_HDFS_NAMENODE_ADDR", "")
+        # environment variables JUPYTER_HADOOP_USER, JUPYTER_HADOOP_PASS stores the user's hdfs credentials.
+        hdfs_user = os.getenv("JUPYTER_HADOOP_USER", "")
+        hdfs_pass = os.getenv("JUPYTER_HADOOP_PASS", "")
         if exit_on_submit_env.isdigit():
             exit_on_submit = bool(int(exit_on_submit_env))
         else:
@@ -78,7 +81,9 @@ class Client:
                         exit_on_submit=exit_on_submit,
                         user_id=user_id,
                         hive_location=hive_location,
-                        hdfs_namenode_addr=hdfs_namenode_addr)
+                        hdfs_namenode_addr=hdfs_namenode_addr,
+                        hdfs_user=hdfs_user,
+                        hdfs_pass=hdfs_pass)
         try:
             sql = self._expander.expand(sql)
         except Exception as e:
