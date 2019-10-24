@@ -5,7 +5,9 @@ import "google/protobuf/any.proto";
 package proto;
 
 service SQLFlow {
-    // Run executes a sql statement
+    // Run executes a sql statement asynchronously and returns an associated JobId.
+    //
+    // Fetch fetches the most recent result of a Job
     //
     // SQL statements like `SELECT ...`, `DESCRIBE ...` returns a rowset.
     // The rowset might be big. In such cases, Query returns a stream
@@ -16,7 +18,12 @@ service SQLFlow {
     //
     // SQL statement like `SELECT ... TRAIN/PREDICT ...` returns a stream of
     // messages which indicates the training/predicting progress
-    rpc Run (Request) returns (stream Response);
+    rpc Run (Request) returns (Job);
+    rpc Fetch (Job) returns (stream Response);
+}
+
+message Job {
+    string id = 1;
 }
 
 message Session {
@@ -79,4 +86,5 @@ message Message {
 message EndOfExecution {
     string sql = 1;
     int64 spent_time_seconds = 2;
+    bool is_last = 3;
 }

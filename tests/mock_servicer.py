@@ -11,7 +11,16 @@ class MockServicer(pb_grpc.SQLFlowServicer):
     """
     server implementation
     """
+    job_count = 0
+    jobs = {}
+
     def Run(self, request, context):
+        self.jobs[str(self.job_count)] = self.response_gen(request)
+        job_msg = pb.Job(id=str(self.job_count))
+        self.job_count = self.job_count + 1
+        return job_msg
+
+    def response_gen(self, request):
         SQL = request.sql.upper()
         if "SELECT" in SQL:
             if "TRAIN" in SQL or "PREDICT" in SQL:
@@ -27,6 +36,12 @@ class MockServicer(pb_grpc.SQLFlowServicer):
             yield MockServicer.message_response("<div id='i391RMGIH3VCTM4GHMN4R'>")
         else:
             yield MockServicer.message_response('bad request', 0)
+
+        return MockServicer.eoe_response(is_last=True)
+
+    def Fetch(self, job, context):
+        for res in self.jobs[job.id]:
+            yield res
 
     @staticmethod
     def get_test_table():
@@ -71,6 +86,16 @@ class MockServicer(pb_grpc.SQLFlowServicer):
 
         res = pb.Response()
         res.message.CopyFrom(pb_msg)
+        return res
+
+    @staticmethod
+    def eoe_response(is_last):
+        eoe_msg = pb.EndOfExecution()
+        eoe_msg.is_last = is_last
+
+        res = pb.Response()
+        res.eoe.CopyFrom(eoe_msg)
+
         return res
 
 

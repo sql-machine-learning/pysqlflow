@@ -105,7 +105,8 @@ class Client:
 
         """
         try:
-            stream_response = self._stub.Run(self.sql_request(operation), timeout=DEFAULT_TIMEOUT)
+            job = self._stub.Run(self.sql_request(operation), timeout=DEFAULT_TIMEOUT)
+            stream_response = self.get_response_stream(job)
             return self.display(stream_response)
         except grpc.RpcError as e:
             # NOTE: raise exception to interrupt notebook execution. Or
@@ -113,6 +114,15 @@ class Client:
             raise e
         except EnvExpanderError as e:
             raise e
+
+    def get_response_stream(self, job):
+        done = True
+        while done:
+            for res in self._stub.Fetch(job):
+                yield res
+                if res.WhichOneof('response') == 'eoe':
+                    if res.eoe.is_last == True:
+                        done = False
 
     @classmethod
     def display(cls, stream_response):
