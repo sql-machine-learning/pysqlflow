@@ -56,6 +56,11 @@ class ClientServerTest(unittest.TestCase):
         assert expected_table["column_names"] == rows.column_names()
         assert expected_table["rows"] == [r for r in rows.rows()]
 
+    def test_multiple_fetch(self):
+        with mock.patch('sqlflow.client._LOGGER') as log_mock:
+            self.client.execute("MANY LOGS")
+            log_mock.debug.assert_called_with("END OF MANY LOGS")
+
     def test_cmd(self):
         assert subprocess.call(["sqlflow", "--url", self.server_url,
             "--ca_crt", self.ca_crt,

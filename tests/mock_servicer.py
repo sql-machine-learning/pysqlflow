@@ -20,6 +20,7 @@ class MockServicer(pb_grpc.SQLFlowServicer):
         self.job_count = self.job_count + 1
         return job_msg
 
+    @staticmethod
     def response_gen(self, request):
         SQL = request.sql.upper()
         if "SELECT" in SQL:
@@ -34,14 +35,23 @@ class MockServicer(pb_grpc.SQLFlowServicer):
             yield MockServicer.message_response("|".join([request.session.token, request.session.db_conn_str, str(request.session.exit_on_submit), request.session.user_id]))
         elif SQL == "TEST RENDER HTML":
             yield MockServicer.message_response("<div id='i391RMGIH3VCTM4GHMN4R'>")
+        elif SQL == "MANY LOGS":
+            for i in range(100):
+                yield MockServicer.message_response("message {}".format(i))
+            yield MockServicer.message_response("END OF MANY LOGS")
         else:
-            yield MockServicer.message_response('bad request', 0)
+            yield MockServicer.message_response('bad request')
 
-        return MockServicer.eoe_response(is_last=True)
+        yield MockServicer.eoe_response(is_last=True)
 
     def Fetch(self, job, context):
+        count = 0
         for res in self.jobs[job.id]:
             yield res
+            count += 1
+            # each fetch only returns a small amount of responses
+            if count > 5:
+                return
 
     @staticmethod
     def get_test_table():
