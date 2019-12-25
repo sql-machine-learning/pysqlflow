@@ -91,11 +91,6 @@ class Client:
             raise e
         return pb.Request(sql=sql, session=se)
 
-    def execute_with_argo_mode(self, operation):
-        stream_response = self._stub.Run(self.sql_request(operation), timeout=DEFAULT_TIMEOUT)
-
-        pass
-
     def execute(self, operation):
         """Run a SQL statement
 
@@ -121,7 +116,7 @@ class Client:
         except EnvExpanderError as e:
             raise e
     
-    def fetch_workflow_logs(self, cli, stream_response):
+    def fetch_workflow_logs(self, stream_response):
         job = None 
         while True:
             try:
@@ -132,19 +127,19 @@ class Client:
             if oneof_res == 'message':
                 for res in stream_response:
                     _LOGGER.info(res.message.message)
-            elif response.WhichOneof('resopnse') == 'job':
+            elif oneof_res == 'job':
                 job = response.job
                 break
             else:
                 raise Exception("unsupported response type in argo mode: %s", response('WhichOneof'))
-
+        req = pb.FetchRequest(job=job)
         while True:
-            response = self._stub.Fetch(job)
+            response = self._stub.Fetch(req)
             if response.eof:
                 break
             for log in response.logs.content:
                 _LOGGER.info(log)
-            job = response.updated_fetch_since
+            req = response.updated_fetch_since
 
     @classmethod
     def display(cls, stream_response):
