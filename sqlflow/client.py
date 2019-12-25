@@ -91,6 +91,11 @@ class Client:
             raise e
         return pb.Request(sql=sql, session=se)
 
+    def execute_with_argo_mode(self, operation):
+        stream_response = self._stub.Run(self.sql_request(operation), timeout=DEFAULT_TIMEOUT)
+
+        pass
+
     def execute(self, operation):
         """Run a SQL statement
 
@@ -106,6 +111,8 @@ class Client:
         """
         try:
             stream_response = self._stub.Run(self.sql_request(operation), timeout=DEFAULT_TIMEOUT)
+            if self._enable_argo_mode():
+                return self.fetch_workflow_logs(stream_response)
             return self.display(stream_response)
         except grpc.RpcError as e:
             # NOTE: raise exception to interrupt notebook execution. Or
@@ -113,6 +120,31 @@ class Client:
             raise e
         except EnvExpanderError as e:
             raise e
+    
+    def fetch_workflow_logs(self, cli, stream_response):
+        job = None 
+        while True:
+            try:
+                response = next(stream_response)
+            except StopIteration:
+                break
+            oneof_res = response.WhichOneof('response')
+            if oneof_res == 'message':
+                for res in stream_response:
+                    _LOGGER.info(res.message.message)
+            elif response.WhichOneof('resopnse') == 'job':
+                job = response.job
+                break
+            else:
+                raise Exception("unsupported response type in argo mode: %s", response('WhichOneof'))
+
+        while True:
+            response = self._stub.Fetch(job)
+            if response.eof:
+                break
+            for log in response.logs.content:
+                _LOGGER.info(log)
+            job = response.updated_fetch_since
 
     @classmethod
     def display(cls, stream_response):
@@ -180,4 +212,6 @@ class Client:
                 any_message.Unpack(timestamp_message)
                 return timestamp_message.ToDatetime()
             raise TypeError("Unsupported type {}".format(any_message))
-
+    
+    def _enable_argo_mode(self):
+        return os.getenv("SQLFLOW_ARGO_MODE", "false") == "true"
