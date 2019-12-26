@@ -23,6 +23,36 @@ _LOGGER.addHandler(handler)
 DEFAULT_TIMEOUT=3600 * 10
 
 
+class StreamReader(object):
+    def __init__(self, stream_response):
+        self._stream_response = stream_response
+        self.last_response = None
+
+    def read_one(self):
+        try:
+            res = next(self._stream_response)
+        except StopIteration:
+            return (None, None)
+
+        return (res, res.WhichOneof('response'))
+
+    def read_until_type_changed(self):
+        first_rtype = None
+        while True:
+            try:
+                response = next(self._stream_response)
+            except StopIteration:
+                break
+
+            rtype = response.WhichOneof('response')
+            if first_rtype == None:
+                first_rtype = rtype 
+
+            if first_rtype != rtype:
+                self.last_response = response
+                break 
+            yield response
+
 class Client:
     def __init__(self, server_url=None, ca_crt=None):
         """A minimum client that issues queries to and fetch results/logs from sqlflowserver.
@@ -114,54 +144,68 @@ class Client:
         except EnvExpanderError as e:
             raise e
 
-    @classmethod
-    def display(cls, stream_response):
+    
+    def read_fetch_response(self, job_id):
+        req = pb.FetchRequest()
+        pb_job = pb.Job(id=job_id)
+        pb_job.id = job_id
+        req.job.CopyFrom(pb_job)
+        while True:
+            response = self._stub.Fetch(req)
+            for log in response.logs.content:
+                _LOGGER.info(log)
+            if response.eof:
+                break
+            req = response.updated_fetch_since
+
+    def display_html(self, first_line, stream_reader):
+        resp_list = [first_line]
+        for res in stream_reader.read_until_type_changed():
+            resp_list.append(res.message.message)
+        from IPython.core.display import display, HTML
+        display(HTML('\n'.join(resp_list)))
+
+    def display(self, stream_response):
         """Display stream response like log or table.row"""
+
+        reader = StreamReader(stream_response)
+        response, rtype = reader.read_one()
         compound_message = CompoundMessage()
         while True:
-            try:
-                first = next(stream_response)
-            except StopIteration:
+            if response == None:
                 break
-            if first.WhichOneof('response') == 'message':
-                # if the first line is html tag like,
-                # merge all return strings then render the html on notebook
-                if re.match(r'<[a-z][\s\S]*>.*', first.message.message):
-                    resp_list = [first.message.message]
-                    for res in stream_response:
-                        if res.WhichOneof('response') == 'eoe':
-                            _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
-                            compound_message.add_html('\n'.join(resp_list), res)
-                            break
-                        resp_list.append(res.message.message)
-                    from IPython.core.display import display, HTML
-                    display(HTML('\n'.join(resp_list)))
+            if rtype == 'message':
+                if re.match(r'<[a-z][\s\S]*>.*', response.message.message):
+                    self.display_html(response.message.message, reader)
                 else:
-                    all_messages = []
-                    all_messages.append(first.message.message)
-                    eoe = None
-                    for res in stream_response:
-                        if res.WhichOneof('response') == 'eoe':
-                            _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
-                            eoe = res
-                            break
-                        _LOGGER.debug(res.message.message)
-                        all_messages.append(res.message.message)
-                    compound_message.add_message('\n'.join(all_messages), eoe)
+                    _LOGGER.info(response.message.message)
+                    for response in reader.read_until_type_changed():
+                        _LOGGER.info(response.message.message)
+                    response = reader.last_response
+                    if response is not None:
+                        rtype = response.WhichOneof('response')
+                    continue
+            elif rtype == 'job':
+                job = response.job
+                self.read_fetch_response(job.id)
+                # the last response type is Job for the workflow mode,
+                # so break the loop here
+                break
             else:
-                column_names = [column_name for column_name in first.head.column_names]
+                column_names = [column_name for column_name in response.head.column_names]
                 def rows_gen():
-                    for res in stream_response:
-                        if res.WhichOneof('response') == 'eoe':
-                            _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
-                            break
-                        yield [cls._decode_any(a) for a in res.row.data]
+                    for res in reader.read_until_type_changed():
+                        yield [self._decode_any(a) for a in res.row.data]
                 rows = Rows(column_names, rows_gen)
                 # call __str__() to trigger rows_gen
                 rows.__str__()
                 compound_message.add_rows(rows, None)
-        return compound_message
 
+            # read the next response
+            response, rtype = reader.read_one()
+
+        return compound_message
+    
     @classmethod
     def _decode_any(cls, any_message):
         """Decode a google.protobuf.any_pb2
@@ -180,4 +224,4 @@ class Client:
                 any_message.Unpack(timestamp_message)
                 return timestamp_message.ToDatetime()
             raise TypeError("Unsupported type {}".format(any_message))
-
+    

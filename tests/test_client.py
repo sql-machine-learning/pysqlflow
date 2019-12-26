@@ -8,7 +8,7 @@ import subprocess
 import shutil
 
 from sqlflow.client import Client
-from tests.mock_servicer import _server, MockServicer
+from tests.mock_servicer import _server, MockServicer, MockWorkflowServicer
 
 from google.protobuf.timestamp_pb2 import Timestamp
 from google.protobuf.any_pb2 import Any
@@ -35,7 +35,7 @@ class ClientServerTest(unittest.TestCase):
         cls.server_url = "localhost:%d" % port
         cls.event = threading.Event()
         cls.tmp_ca_dir, cls.ca_crt, ca_key = generateTempCA()
-        threading.Thread(target=_server, args=[port, cls.event, cls.ca_crt, ca_key]).start()
+        threading.Thread(target=_server, args=[MockServicer(), port, cls.event, cls.ca_crt, ca_key]).start()
         # wait for start
         time.sleep(1)
         cls.client = Client(cls.server_url, cls.ca_crt)
@@ -49,7 +49,7 @@ class ClientServerTest(unittest.TestCase):
     def test_execute_stream(self):
         with mock.patch('sqlflow.client._LOGGER') as log_mock:
             res = self.client.execute("select * from galaxy train ..")
-            log_mock.debug.assert_called_with("extended sql")
+            log_mock.info.assert_called_with("extended sql")
 
         expected_table = MockServicer.get_test_table()
         rows = self.client.execute("select * from galaxy").get(0)
@@ -91,3 +91,27 @@ class ClientServerTest(unittest.TestCase):
         with mock.patch('IPython.core.display.HTML') as log_mock:
             self.client.execute("TEST RENDER HTML")
             log_mock.assert_called_with("<div id='i391RMGIH3VCTM4GHMN4R'>")
+
+class ClientWorkflowServerTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # TODO: free port is better
+        port = 8766
+        cls.server_url = "localhost:%d" % port
+        cls.event = threading.Event()
+        cls.tmp_ca_dir, cls.ca_crt, ca_key = generateTempCA()
+        threading.Thread(target=_server, args=[MockWorkflowServicer(), port, cls.event, cls.ca_crt, ca_key]).start()
+        # wait for start
+        time.sleep(1)
+        cls.client = Client(cls.server_url, cls.ca_crt)
+
+    @classmethod
+    def tearDownClass(cls):
+        # shutdown server after this test
+        cls.event.set()
+        shutil.rmtree(cls.tmp_ca_dir, ignore_errors=True)
+
+    def test_execute_stream(self):
+        with mock.patch('sqlflow.client._LOGGER') as log_mock:
+            res = self.client.execute("select * from galaxy train ..")
+            log_mock.info.assert_called_with("fetch workflow logs")
