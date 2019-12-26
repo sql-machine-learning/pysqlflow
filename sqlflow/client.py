@@ -22,6 +22,20 @@ _LOGGER.addHandler(handler)
 # jobs to finish.
 DEFAULT_TIMEOUT=3600 * 10
 
+class StreamReader(object):
+    def __init__(self, stream_response):
+        self.job = None
+        self._stream_response = stream_response
+
+    def read(self):
+        for res in self._stream_response:
+            if res.WhichOneof('response') == 'eoe':
+                _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
+                break
+            if res.WhichOneof('response') == 'job':
+                self.job = res.job
+                break
+            yield res
 
 class Client:
     def __init__(self, server_url=None, ca_crt=None):
@@ -106,8 +120,6 @@ class Client:
         """
         try:
             stream_response = self._stub.Run(self.sql_request(operation), timeout=DEFAULT_TIMEOUT)
-            if self._enable_argo_mode():
-                return self.fetch_workflow_logs(stream_response)
             return self.display(stream_response)
         except grpc.RpcError as e:
             # NOTE: raise exception to interrupt notebook execution. Or
@@ -115,34 +127,22 @@ class Client:
             raise e
         except EnvExpanderError as e:
             raise e
+
     
-    def fetch_workflow_logs(self, stream_response):
-        job = None 
-        while True:
-            try:
-                response = next(stream_response)
-            except StopIteration:
-                break
-            oneof_res = response.WhichOneof('response')
-            if oneof_res == 'message':
-                for res in stream_response:
-                    _LOGGER.info(res.message.message)
-            elif oneof_res == 'job':
-                job = response.job
-                break
-            else:
-                raise Exception("unsupported response type in argo mode: %s", response('WhichOneof'))
-        req = pb.FetchRequest(job=job)
+    def read_fetch_response(self, job_id):
+        req = pb.FetchRequest()
+        pb_job = pb.Job(id=job_id)
+        pb_job.id = job_id
+        req.job.CopyFrom(pb_job)
         while True:
             response = self._stub.Fetch(req)
-            if response.eof:
-                break
             for log in response.logs.content:
                 _LOGGER.info(log)
+            if response.eof:
+                break
             req = response.updated_fetch_since
 
-    @classmethod
-    def display(cls, stream_response):
+    def display(self, stream_response):
         """Display stream response like log or table.row"""
         compound_message = CompoundMessage()
         while True:
@@ -150,45 +150,37 @@ class Client:
                 first = next(stream_response)
             except StopIteration:
                 break
-            if first.WhichOneof('response') == 'message':
-                # if the first line is html tag like,
-                # merge all return strings then render the html on notebook
+            oneof_first = first.WhichOneof('response')
+            reader = StreamReader(stream_response)
+            if oneof_first == 'message':
                 if re.match(r'<[a-z][\s\S]*>.*', first.message.message):
                     resp_list = [first.message.message]
-                    for res in stream_response:
-                        if res.WhichOneof('response') == 'eoe':
-                            _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
-                            compound_message.add_html('\n'.join(resp_list), res)
-                            break
+                    for res in reader.read():
                         resp_list.append(res.message.message)
                     from IPython.core.display import display, HTML
                     display(HTML('\n'.join(resp_list)))
                 else:
-                    all_messages = []
-                    all_messages.append(first.message.message)
-                    eoe = None
-                    for res in stream_response:
-                        if res.WhichOneof('response') == 'eoe':
-                            _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
-                            eoe = res
-                            break
-                        _LOGGER.debug(res.message.message)
-                        all_messages.append(res.message.message)
-                    compound_message.add_message('\n'.join(all_messages), eoe)
+                    _LOGGER.info(first.message.message)
+                    for res in reader.read():
+                        _LOGGER.info(res.message.message)
+            elif oneof_first == 'job':
+                self.read_fetch_response(first.job.id)
+                break
             else:
                 column_names = [column_name for column_name in first.head.column_names]
                 def rows_gen():
-                    for res in stream_response:
-                        if res.WhichOneof('response') == 'eoe':
-                            _LOGGER.info("end execute %s, spent: %d" % (res.eoe.sql, res.eoe.spent_time_seconds))
-                            break
-                        yield [cls._decode_any(a) for a in res.row.data]
+                    for res in reader.read():
+                        yield [self._decode_any(a) for a in res.row.data]
                 rows = Rows(column_names, rows_gen)
                 # call __str__() to trigger rows_gen
                 rows.__str__()
                 compound_message.add_rows(rows, None)
+            if reader.job:
+                # enable workflow mode if the respoonse meessage type is pb.Job
+                self.read_fetch_response(reader.job.id)
+                break
         return compound_message
-
+    
     @classmethod
     def _decode_any(cls, any_message):
         """Decode a google.protobuf.any_pb2
@@ -208,5 +200,3 @@ class Client:
                 return timestamp_message.ToDatetime()
             raise TypeError("Unsupported type {}".format(any_message))
     
-    def _enable_argo_mode(self):
-        return os.getenv("SQLFLOW_ARGO_MODE", "false") == "true"

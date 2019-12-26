@@ -6,6 +6,36 @@ import google.protobuf.wrappers_pb2 as wrapper
 import sqlflow.proto.sqlflow_pb2 as pb
 import sqlflow.proto.sqlflow_pb2_grpc as pb_grpc
 
+class MockWorkflowServicer(pb_grpc.SQLFlowServicer):
+    """
+    server implementation with workflow
+    """
+    def Run(self, request, context):
+        yield MockWorkflowServicer.job_response("sqlflow_couler_xxx") 
+    
+    def Fetch(self, request, context):
+        return MockWorkflowServicer.fetch_response(request, "fetch workflow logs")
+
+    @staticmethod
+    def job_response(job_id):
+        pb_job = pb.Job()
+        pb_job.id = job_id
+
+        res = pb.Response()
+        res.job.CopyFrom(pb_job)
+
+        return res
+
+    @staticmethod
+    def fetch_response(req, log):
+        pb_res = pb.FetchResponse()
+        pb_res.updated_fetch_since.CopyFrom(req)
+        pb_res.eof = True
+        pb_logs = pb_res.Logs()
+        pb_logs.content.extend([log])
+
+        pb_res.logs.CopyFrom(pb_logs)
+        return pb_res
 
 class MockServicer(pb_grpc.SQLFlowServicer):
     """
@@ -27,6 +57,10 @@ class MockServicer(pb_grpc.SQLFlowServicer):
             yield MockServicer.message_response("<div id='i391RMGIH3VCTM4GHMN4R'>")
         else:
             yield MockServicer.message_response('bad request', 0)
+
+    def Fetch(self, request, context):
+        job_id = request.job.id
+        yield MockServicer.message_fetch_response(request.job, "execute workflow")
 
     @staticmethod
     def get_test_table():
@@ -74,14 +108,14 @@ class MockServicer(pb_grpc.SQLFlowServicer):
         return res
 
 
-def _server(port, event, ca_crt, ca_key):
+def _server(server_instance, port, event, ca_crt, ca_key):
     svr = grpc.server(futures.ThreadPoolExecutor(max_workers=2))
     with open(ca_key, "rb") as f:
         private_key = f.read()
     with open(ca_crt, "rb") as f:
         certification_chain = f.read()
     server_credentials = grpc.ssl_server_credentials( ( (private_key, certification_chain), ) )
-    pb_grpc.add_SQLFlowServicer_to_server(MockServicer(), svr)
+    pb_grpc.add_SQLFlowServicer_to_server(server_instance, svr)
     svr.add_secure_port('[::]:%d' % port, server_credentials)
     svr.start()
     try:
