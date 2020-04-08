@@ -14,7 +14,7 @@ service SQLFlow {
     // SQLFlow implements the Run interface with two mode:
     //
     // 1. Local model
-    // The SQLFlow server execute the SQL statements on the localhost.
+    // The SQLFlow server execute the SQL statements on the local host.
     // 
     // SQL statements like `USE database`, `DELETE` returns only a success
     // message.
@@ -59,16 +59,16 @@ message FetchRequest {
     Job job = 1;
     // the following fields keep the fetching state
     string step_id = 2;
-    string log_offset = 3;
+    string step_phase = 3;
 }
 
 message FetchResponse {
-    message Logs {
-        repeated string content = 1;
+    message Responses {
+        repeated Response response = 1;
     }
     FetchRequest updated_fetch_since = 1;
     bool eof = 2;
-    Logs logs = 3;
+    Responses responses = 4;
 }
 
 message Session {
@@ -81,6 +81,7 @@ message Session {
     string hdfs_namenode_addr = 6;
     string hdfs_user = 7;
     string hdfs_pass = 8;
+    string submitter = 9;
 }
 
 // SQL statements to run
