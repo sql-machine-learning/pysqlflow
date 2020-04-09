@@ -160,7 +160,7 @@ class Client:
             for response in fetch_response.responses.response:
                 rtype = response.WhichOneof('response')
                 if rtype == 'message':
-                    msg = response.message.message 
+                    msg = response.message.message
                     if re.match(r'<[a-z][\s\S]*>.*', msg):
                         from IPython.core.display import display, HTML
                         display(HTML(msg))
