@@ -31,10 +31,8 @@ class MockWorkflowServicer(pb_grpc.SQLFlowServicer):
         pb_res = pb.FetchResponse()
         pb_res.updated_fetch_since.CopyFrom(req)
         pb_res.eof = True
-        pb_logs = pb_res.Logs()
-        pb_logs.content.extend([log])
-
-        pb_res.logs.CopyFrom(pb_logs)
+        res = MockServicer.message_response(log)
+        pb_res.responses.response.extend([res])
         return pb_res
 
 class MockServicer(pb_grpc.SQLFlowServicer):

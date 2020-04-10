@@ -3,6 +3,7 @@ import sys
 import logging
 import grpc
 import re
+import time
 
 import google.protobuf.wrappers_pb2 as wrapper
 from google.protobuf.timestamp_pb2 import Timestamp
@@ -144,19 +145,44 @@ class Client:
         except EnvExpanderError as e:
             raise e
 
-    
     def read_fetch_response(self, job_id):
         req = pb.FetchRequest()
         pb_job = pb.Job(id=job_id)
         pb_job.id = job_id
         req.job.CopyFrom(pb_job)
+        compound_message = CompoundMessage()
+        column_names = None
+        rows = []
+        
+        # TODO(yancey1989): using the common codebase with the stream response
         while True:
-            response = self._stub.Fetch(req)
-            for log in response.logs.content:
-                _LOGGER.info(log)
-            if response.eof:
+            fetch_response = self._stub.Fetch(req)
+            for response in fetch_response.responses.response:
+                rtype = response.WhichOneof('response')
+                if rtype == 'message':
+                    msg = response.message.message
+                    if re.match(r'<[a-z][\s\S]*>.*', msg):
+                        from IPython.core.display import display, HTML
+                        display(HTML(msg))
+                    else:
+                        _LOGGER.info(msg)
+                elif rtype == 'eoe':
+                    def _rows_gen():
+                        for row in rows:
+                            yield [self._decode_any(d) for d in row.data]
+                    compound_message.add_rows(Rows(column_names, _rows_gen), None)
+                    rows = []
+                    break
+                elif rtype == 'head':
+                    column_names = [column_name for column_name in response.head.column_names]
+                else:
+                    rows.append(response.row)
+            if fetch_response.eof:
                 break
-            req = response.updated_fetch_since
+            req = fetch_response.updated_fetch_since
+            time.sleep(2)
+        
+        return compound_message
 
     def display_html(self, first_line, stream_reader):
         resp_list = [first_line]
@@ -187,19 +213,15 @@ class Client:
                     continue
             elif rtype == 'job':
                 job = response.job
-                self.read_fetch_response(job.id)
                 # the last response type is Job for the workflow mode,
                 # so break the loop here
-                break
+                return self.read_fetch_response(job.id)
             else:
                 column_names = [column_name for column_name in response.head.column_names]
                 def rows_gen():
                     for res in reader.read_until_type_changed():
                         yield [self._decode_any(a) for a in res.row.data]
-                rows = Rows(column_names, rows_gen)
-                # call __str__() to trigger rows_gen
-                rows.__str__()
-                compound_message.add_rows(rows, None)
+                compound_message.add_rows(Rows(column_names, rows_gen), None)
 
             # read the next response
             response, rtype = reader.read_one()
@@ -224,4 +246,3 @@ class Client:
                 any_message.Unpack(timestamp_message)
                 return timestamp_message.ToDatetime()
             raise TypeError("Unsupported type {}".format(any_message))
-    

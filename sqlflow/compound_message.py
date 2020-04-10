@@ -13,6 +13,8 @@ class CompoundMessage:
     
     def add_rows(self, rows, eoe):
         assert(isinstance(rows, Rows))
+        # call __str__() to trigger rows_gen
+        rows.__str__()
         self._messages.append((rows, eoe, self.TypeRows))
     
     def add_message(self, message, eoe):
