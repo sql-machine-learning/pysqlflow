@@ -73,19 +73,20 @@ class ClientServerTest(unittest.TestCase):
         null_message = pb.Row.Null()
         any_message.Pack(null_message)
         assert Client._decode_any(any_message) is None
-    
+
     # TODO(typhoonzero): this test seems not useful, need to find a better way
     # def test_session(self):
     #     token = "unittest-user"
-    #     ds = "maxcompute://AK:SK@host:port" 
+    #     ds = "maxcompute://AK:SK@host:port"
     #     os.environ["SQLFLOW_USER_TOKEN"] = token
     #     os.environ["SQLFLOW_DATASOURCE"] = ds
-    #     os.environ["SQLFLOW_EXIT_ON_SUBMIT"] = "TRUE"
+    #     os.environ["SQLFLOW_EXIT_ON_SUBMIT"] = "True"
     #     os.environ["SQLFLOW_USER_ID"] = "sqlflow_user"
+    #     os.environ["SQLFLOW_SUBMITTER"] = "pai"
     #     with mock.patch('sqlflow.client._LOGGER') as log_mock:
     #         self.client.execute("TEST VERIFY SESSION")
     #         log_mock.debug.assert_called_with("|".join([token, ds, "True", "sqlflow_user"]))
-    
+
     def test_draw_html(self):
         from IPython.core.display import display, HTML
         with mock.patch('IPython.core.display.HTML') as log_mock:
