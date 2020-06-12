@@ -47,11 +47,11 @@ class StreamReader(object):
 
             rtype = response.WhichOneof('response')
             if first_rtype == None:
-                first_rtype = rtype 
+                first_rtype = rtype
 
             if first_rtype != rtype:
                 self.last_response = response
-                break 
+                break
             yield response
 
 class Client:
@@ -96,6 +96,7 @@ class Client:
     def sql_request(self, sql):
         token = os.getenv("SQLFLOW_USER_TOKEN", "")
         db_conn_str = os.getenv("SQLFLOW_DATASOURCE", "")
+        submitter = os.getenv("SQLFLOW_SUBMITTER", "")
         exit_on_submit_env = os.getenv("SQLFLOW_EXIT_ON_SUBMIT", "True")
         user_id = os.getenv("SQLFLOW_USER_ID", "")
         hive_location = os.getenv("SQLFLOW_HIVE_LOCATION", "")
@@ -114,7 +115,8 @@ class Client:
                         hive_location=hive_location,
                         hdfs_namenode_addr=hdfs_namenode_addr,
                         hdfs_user=hdfs_user,
-                        hdfs_pass=hdfs_pass)
+                        hdfs_pass=hdfs_pass,
+                        submitter=submitter)
         try:
             sql = self._expander.expand(sql)
         except Exception as e:
@@ -153,7 +155,7 @@ class Client:
         compound_message = CompoundMessage()
         column_names = None
         rows = []
-        
+
         # TODO(yancey1989): using the common codebase with the stream response
         while True:
             fetch_response = self._stub.Fetch(req)
@@ -181,7 +183,7 @@ class Client:
                 break
             req = fetch_response.updated_fetch_since
             time.sleep(2)
-        
+
         return compound_message
 
     def display_html(self, first_line, stream_reader):
@@ -227,7 +229,7 @@ class Client:
             response, rtype = reader.read_one()
 
         return compound_message
-    
+
     @classmethod
     def _decode_any(cls, any_message):
         """Decode a google.protobuf.any_pb2

@@ -11,8 +11,8 @@ class MockWorkflowServicer(pb_grpc.SQLFlowServicer):
     server implementation with workflow
     """
     def Run(self, request, context):
-        yield MockWorkflowServicer.job_response("sqlflow_couler_xxx") 
-    
+        yield MockWorkflowServicer.job_response("sqlflow_couler_xxx")
+
     def Fetch(self, request, context):
         return MockWorkflowServicer.fetch_response(request, "fetch workflow logs")
 
