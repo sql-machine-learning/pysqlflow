@@ -113,6 +113,7 @@ class ClientWorkflowServerTest(unittest.TestCase):
         shutil.rmtree(cls.tmp_ca_dir, ignore_errors=True)
 
     def test_execute_stream(self):
-        with mock.patch('sqlflow.client._LOGGER') as log_mock:
-            res = self.client.execute("select * from galaxy train ..")
-            log_mock.info.assert_called_with("fetch workflow logs")
+        expected_table = MockServicer.get_test_table()
+        rows = self.client.execute("select * from galaxy train ..").get(0)
+        assert expected_table["column_names"] == rows.column_names()
+        assert expected_table["rows"] == [r for r in rows.rows()]

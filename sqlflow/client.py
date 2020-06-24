@@ -177,13 +177,15 @@ class Client:
                     break
                 elif rtype == 'head':
                     column_names = [column_name for column_name in response.head.column_names]
-                else:
+                elif rtype == 'row':
                     rows.append(response.row)
+                else:
+                    # ignore other response type
+                    pass
             if fetch_response.eof:
                 break
             req = fetch_response.updated_fetch_since
             time.sleep(2)
-
         return compound_message
 
     def display_html(self, first_line, stream_reader):
