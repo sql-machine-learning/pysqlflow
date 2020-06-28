@@ -31,8 +31,12 @@ class MockWorkflowServicer(pb_grpc.SQLFlowServicer):
         pb_res = pb.FetchResponse()
         pb_res.updated_fetch_since.CopyFrom(req)
         pb_res.eof = True
-        res = MockServicer.message_response(log)
-        pb_res.responses.response.extend([res])
+        gen = MockServicer.table_response(MockServicer.get_test_table())
+        rows = []
+        for row in gen:
+            rows.append(row)
+        pb_res.responses.response.extend(rows)
+        pb_res.responses.response.extend([MockServicer.eoe_response()])
         return pb_res
 
 class MockServicer(pb_grpc.SQLFlowServicer):
@@ -103,6 +107,13 @@ class MockServicer(pb_grpc.SQLFlowServicer):
 
         res = pb.Response()
         res.message.CopyFrom(pb_msg)
+        return res
+
+    @staticmethod
+    def eoe_response():
+        pb_eoe = pb.EndOfExecution()
+        res = pb.Response()
+        res.eoe.CopyFrom(pb_eoe)
         return res
 
 
