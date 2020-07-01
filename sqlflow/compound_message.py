@@ -52,3 +52,5 @@ class CompoundMessage:
     def get(self, idx):
         return self._messages[idx][0]
 
+    def empty(self):
+        return len(self._messages) == 0

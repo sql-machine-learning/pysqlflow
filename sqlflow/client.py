@@ -172,7 +172,8 @@ class Client:
                     def _rows_gen():
                         for row in rows:
                             yield [self._decode_any(d) for d in row.data]
-                    compound_message.add_rows(Rows(column_names, _rows_gen), None)
+                    if rows:
+                        compound_message.add_rows(Rows(column_names, _rows_gen), None)
                     rows = []
                     break
                 elif rtype == 'head':
@@ -186,6 +187,9 @@ class Client:
                 break
             req = fetch_response.updated_fetch_since
             time.sleep(2)
+        if compound_message.empty():
+            # return None to avoid outputing a blank line
+            return None
         return compound_message
 
     def display_html(self, first_line, stream_reader):
@@ -197,7 +201,6 @@ class Client:
 
     def display(self, stream_response):
         """Display stream response like log or table.row"""
-
         reader = StreamReader(stream_response)
         response, rtype = reader.read_one()
         compound_message = CompoundMessage()
@@ -229,7 +232,9 @@ class Client:
 
             # read the next response
             response, rtype = reader.read_one()
-
+        if compound_message.empty():
+            # return None to avoid outputing a blank line
+            return None
         return compound_message
 
     @classmethod
