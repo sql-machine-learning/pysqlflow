@@ -23,6 +23,9 @@ _LOGGER.addHandler(handler)
 # jobs to finish.
 DEFAULT_TIMEOUT=3600 * 10
 
+# HTML code prefix from step logs
+HTML_PREFIX="data:text/html,"
+
 
 class StreamReader(object):
     def __init__(self, stream_response):
@@ -163,9 +166,9 @@ class Client:
                 rtype = response.WhichOneof('response')
                 if rtype == 'message':
                     msg = response.message.message
-                    if re.match(r'<[a-z][\s\S]*>.*', msg):
+                    if msg.startswith(HTML_PREFIX):
                         from IPython.core.display import display, HTML
-                        display(HTML(msg))
+                        display(HTML(msg.lstrip(HTML_PREFIX)))
                     else:
                         _LOGGER.info(msg)
                 elif rtype == 'eoe':
