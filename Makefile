@@ -8,7 +8,7 @@ setup: ## Setup virtual environment for local development
 	&& $(MAKE) install-requirements protoc
 
 install-requirements:
-	pip install -U -e .
+	pip install -e .
 
 test: ## Run tests
 	python3 setup.py test
@@ -16,10 +16,12 @@ test: ## Run tests
 clean: ## Clean up temporary folders
 	rm -rf build dist .eggs *.egg-info .pytest_cache sqlflow/proto
 
+# NOTE(typhoonzero): grpcio-tools >= 1.29.0 breaks the tests like:
+# AttributeError: module 'google.protobuf.descriptor' has no attribute '_internal_create_key'
 protoc: ## Generate python client from proto file
 	python3 -m venv build/grpc
 	source build/grpc/bin/activate \
-	&& pip install grpcio-tools \
+	&& pip install grpcio-tools==1.29.0 \
 	&& mkdir -p build/grpc/sqlflow/proto \
 	&& python -m grpc_tools.protoc -Iproto --python_out=. \
 		--grpc_python_out=. proto/sqlflow/proto/sqlflow.proto
