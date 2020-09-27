@@ -21,6 +21,9 @@ REQUIRED = [
     'grpcio >=1.17, <2',
     'ipython==7.9',
     'pandas',
+    'tornado>=6.0.0',
+    'python-dotenv>0.10.0',
+    'nest_asyncio>=1.4.0'
 ]
 SETUP_REQUIRED = [
     'pytest-runner'
