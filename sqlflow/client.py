@@ -208,7 +208,7 @@ class Client:
         response, rtype = reader.read_one()
         compound_message = CompoundMessage()
         while True:
-            if response == None:
+            if response is None:
                 break
             if rtype == 'message':
                 if re.match(r'<[a-z][\s\S]*>.*', response.message.message):
@@ -226,12 +226,16 @@ class Client:
                 # the last response type is Job for the workflow mode,
                 # so break the loop here
                 return self.read_fetch_response(job.id)
-            else:
+            elif rtype == 'head' or rtype == 'row':
                 column_names = [column_name for column_name in response.head.column_names]
+
                 def rows_gen():
                     for res in reader.read_until_type_changed():
                         yield [self._decode_any(a) for a in res.row.data]
                 compound_message.add_rows(Rows(column_names, rows_gen), None)
+            else:
+                # deal with other response type in the future if necessary.
+                pass
 
             # read the next response
             response, rtype = reader.read_one()
