@@ -124,6 +124,8 @@ class SqlFlowMagic(Magics):
             # server can kill the db resource
             # if no heart beat is coming for a while
             self.setup_heart_beat(server, user_id)
+        except Exception as e:
+            raise RuntimeError("Can't get SQLFlow resource, because of", e)
         finally:
             http.close()
 
