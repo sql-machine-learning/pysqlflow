@@ -19,7 +19,7 @@ VERSION = None
 REQUIRED = [
     'protobuf==3.7.1',
     'grpcio >=1.17, <2',
-    'ipython==7.9',
+    'ipython==7.16.3',
     'pandas',
     'tornado>=6.0.0',
     'python-dotenv>0.10.0',
