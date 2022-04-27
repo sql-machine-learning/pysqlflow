@@ -155,10 +155,11 @@ class Client:
         except EnvExpanderError as e:
             raise e
 
-    def read_fetch_response(self, job_id):
+    def read_fetch_response(self, job):
         req = pb.FetchRequest()
-        pb_job = pb.Job(id=job_id)
-        pb_job.id = job_id
+        pb_job = pb.Job(id=job.id, namespace=job.namespace)
+        pb_job.id = job.id
+        pb_job.namespace = job.namespace
         req.job.CopyFrom(pb_job)
         compound_message = CompoundMessage()
         column_names = None
@@ -230,7 +231,7 @@ class Client:
                 job = response.job
                 # the last response type is Job for the workflow mode,
                 # so break the loop here
-                return self.read_fetch_response(job.id)
+                return self.read_fetch_response(job)
             elif rtype == 'head' or rtype == 'row':
                 column_names = [column_name for column_name in response.head.column_names]
 

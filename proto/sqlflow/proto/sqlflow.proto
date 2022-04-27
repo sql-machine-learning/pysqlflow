@@ -53,6 +53,7 @@ service SQLFlow {
 
 message Job {
     string id = 1;
+    string namespace = 2;
 }
 
 message FetchRequest {
