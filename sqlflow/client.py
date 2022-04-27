@@ -107,6 +107,9 @@ class Client:
         # environment variables JUPYTER_HADOOP_USER, JUPYTER_HADOOP_PASS stores the user's hdfs credentials.
         hdfs_user = os.getenv("JUPYTER_HADOOP_USER", "")
         hdfs_pass = os.getenv("JUPYTER_HADOOP_PASS", "")
+        service_account = os.getenv("SQLFLOW_SERVICE_ACCOUNT", "")
+        wf_namespace = os.getenv("SQLFLOW_WF_NAMESPACE", "")
+
         if exit_on_submit_env.isdigit():
             exit_on_submit = bool(int(exit_on_submit_env))
         else:
@@ -119,6 +122,8 @@ class Client:
                         hdfs_namenode_addr=hdfs_namenode_addr,
                         hdfs_user=hdfs_user,
                         hdfs_pass=hdfs_pass,
+                        service_account=service_account,
+                        wf_namespace=wf_namespace,
                         submitter=submitter)
         try:
             sql = self._expander.expand(sql)
