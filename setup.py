@@ -17,7 +17,7 @@ VERSION = None
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'protobuf==3.7.1',
+    'protobuf==3.18.3',
     'grpcio >=1.17, <2',
     'ipython==7.9',
     'pandas',
